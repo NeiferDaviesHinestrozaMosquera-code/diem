@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { Toaster } from '@/components/ui/sonner';
@@ -16,16 +17,42 @@ import { ProjectsAdmin } from '@/pages/admin/ProjectsAdmin';
 import { TestimonialsAdmin } from '@/pages/admin/TestimonialsAdmin';
 import { ClientInquiries } from '@/pages/admin/ClientInquiries';
 import { SiteSettings } from '@/pages/admin/SiteSettings';
+
+// Nuevos componentes para efectos parallax y animaciones
+import { CursorFollower } from '@/components/effects/CursorFollower';
+import { ParallaxBackground } from '@/components/effects/ParallaxBackground';
+
 import './App.css';
 
 function AppContent() {
-  const { pathname } = window.location;
-  const isAdmin = pathname.startsWith('/admin');
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
+
+  // Add/remove admin class on body
+  useEffect(() => {
+    if (isAdmin) {
+      document.body.classList.add('admin-page');
+    } else {
+      document.body.classList.remove('admin-page');
+    }
+    return () => {
+      document.body.classList.remove('admin-page');
+    };
+  }, [isAdmin]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
+      {/* Cursor Personalizado - Solo en páginas públicas */}
+      {!isAdmin && <CursorFollower />}
+      
+      {/* Background con efectos parallax - Solo en páginas públicas */}
+      {!isAdmin && <ParallaxBackground />}
+
+      {/* Header */}
       <Header isAdmin={isAdmin} />
-      <main className={isAdmin ? '' : 'pt-20'}>
+      
+      {/* Main Content */}
+      <main className={isAdmin ? '' : 'pt-20 relative z-10'}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -44,7 +71,11 @@ function AppContent() {
           <Route path="/admin/settings" element={<SiteSettings />} />
         </Routes>
       </main>
+      
+      {/* Footer - Solo en páginas públicas */}
       {!isAdmin && <Footer />}
+      
+      {/* Toaster para notificaciones */}
       <Toaster position="top-center" />
     </div>
   );
