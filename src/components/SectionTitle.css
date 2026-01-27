@@ -1,0 +1,122 @@
+.section-title-container {
+  width: 100%;
+  padding: 4rem 2rem 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.section-title-wrapper {
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  color: white;
+  position: relative;
+}
+
+.title-line {
+  height: 2px;
+  width: 80px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.8) 50%,
+    transparent 100%
+  );
+  flex-shrink: 0;
+}
+
+.section-subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Efecto de brillo animado */
+.section-title::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(102, 126, 234, 0.15) 0%,
+    transparent 70%
+  );
+  animation: pulse 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .section-title-container {
+    padding: 3rem 1rem 1.5rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+    gap: 1rem;
+    flex-direction: column;
+  }
+
+  .title-line {
+    width: 60px;
+    display: none;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* Tema claro */
+[data-theme='light'] .section-title {
+  color: #1a1a1a;
+}
+
+[data-theme='light'] .section-subtitle {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='light'] .title-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(102, 126, 234, 0.6) 50%,
+    transparent 100%
+  );
+}
+
+[data-theme='light'] .section-title::before {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(102, 126, 234, 0.1) 0%,
+    transparent 70%
+  );
+}
