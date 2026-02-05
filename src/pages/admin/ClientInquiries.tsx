@@ -136,7 +136,7 @@ export function ClientInquiries() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full md:w-48">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
@@ -151,7 +151,7 @@ export function ClientInquiries() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Requests', value: quotes.length, icon: FileText, color: 'bg-blue-500' },
           { label: 'Pending', value: quotes.filter(q => q.status === 'pending').length, icon: Clock, color: 'bg-yellow-500' },
@@ -188,86 +188,99 @@ export function ClientInquiries() {
                 <tr>
                   <th className="text-left p-4 font-medium">Client</th>
                   <th className="text-left p-4 font-medium">Service</th>
-                  <th className="text-left p-4 font-medium">Date</th>
+                  <th className="text-left p-4 font-medium hidden md:table-cell">Date</th>
                   <th className="text-left p-4 font-medium">Status</th>
                   <th className="text-left p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentQuotes.map((quote, index) => (
-                  <motion.tr
-                    key={quote.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="border-b border-border hover:bg-muted/30"
-                  >
-                    <td className="p-4">
-                      <div>
-                        <p className="font-medium">{quote.fullName}</p>
-                        <p className="text-sm text-muted-foreground">{quote.email}</p>
-                      </div>
+                {currentQuotes.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center p-8 text-muted-foreground">
+                      No inquiries found
                     </td>
-                    <td className="p-4">{quote.service}</td>
-                    <td className="p-4 text-sm text-muted-foreground">
-                      {new Date(quote.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4">
-                      <Select
-                        value={quote.status}
-                        onValueChange={(value) => handleStatusChange(quote.id, value)}
-                      >
-                        <SelectTrigger className={`w-32 ${getStatusColor(quote.status)}`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="reviewed">Reviewed</SelectItem>
-                          <SelectItem value="quoted">Quoted</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedQuote(quote)}
+                  </tr>
+                ) : (
+                  currentQuotes.map((quote, index) => (
+                    <motion.tr
+                      key={quote.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="border-b border-border hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="p-4">
+                        <div>
+                          <p className="font-medium">{quote.fullName}</p>
+                          <p className="text-sm text-muted-foreground">{quote.email}</p>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <span className="text-sm">{quote.service}</span>
+                      </td>
+                      <td className="p-4 hidden md:table-cell">
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(quote.createdAt).toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <Select
+                          value={quote.status}
+                          onValueChange={(value) => handleStatusChange(quote.id, value)}
                         >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleGenerateReport(quote)}
-                          disabled={isGeneratingReport}
-                          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
-                        >
-                          {isGeneratingReport ? (
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                              className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                            />
-                          ) : quote.aiReport ? (
-                            <FileText className="w-4 h-4" />
-                          ) : (
-                            <Sparkles className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
+                          <SelectTrigger className={`w-32 ${getStatusColor(quote.status)}`}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="reviewed">Reviewed</SelectItem>
+                            <SelectItem value="quoted">Quoted</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedQuote(quote)}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            <span className="hidden sm:inline">View</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleGenerateReport(quote)}
+                            disabled={isGeneratingReport}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
+                            title={quote.aiReport ? 'View AI Report' : 'Generate AI Report'}
+                          >
+                            {isGeneratingReport ? (
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                              />
+                            ) : quote.aiReport ? (
+                              <FileText className="w-4 h-4" />
+                            ) : (
+                              <Sparkles className="w-4 h-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between p-4 border-t border-border">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-border">
               <p className="text-sm text-muted-foreground">
                 Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredQuotes.length)} of {filteredQuotes.length} inquiries
               </p>
@@ -280,16 +293,28 @@ export function ClientInquiries() {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
                 <Button
                   variant="outline"
                   size="sm"

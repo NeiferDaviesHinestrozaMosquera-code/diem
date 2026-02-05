@@ -5,7 +5,7 @@ import {
   Calendar, User, Folder, Code2
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const technologies = {
   react: { name: 'React', icon: '⚛️' },
@@ -119,7 +119,7 @@ const projects = [
 export function Projects() {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const openProject = (project: typeof projects[0]) => {
     setSelectedProject(project);

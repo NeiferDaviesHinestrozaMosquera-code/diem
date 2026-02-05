@@ -6,7 +6,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const contactInfo = [
   {
@@ -34,7 +34,7 @@ const contactInfo = [
 
 export function Contact() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen pt-20">

@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { LanguageProvider } from '@/contexts/LanguageContext';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -16,6 +15,7 @@ import { ProjectsAdmin } from '@/pages/admin/ProjectsAdmin';
 import { TestimonialsAdmin } from '@/pages/admin/TestimonialsAdmin';
 import { ClientInquiries } from '@/pages/admin/ClientInquiries';
 import { SiteSettings } from '@/pages/admin/SiteSettings';
+import './i18n';
 import './App.css';
 
 function AppContent() {
@@ -54,9 +54,7 @@ function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <LanguageProvider>
-          <AppContent />
-        </LanguageProvider>
+        <AppContent />
       </ThemeProvider>
     </BrowserRouter>
   );

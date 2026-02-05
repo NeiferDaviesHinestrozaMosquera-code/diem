@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 const services = [
   {
@@ -134,7 +134,7 @@ const services = [
 
 export function Services() {
   const [selectedService, setSelectedService] = useState<typeof services[0] | null>(null);
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen pt-20">

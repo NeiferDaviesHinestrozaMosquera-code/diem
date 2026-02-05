@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
 import { ShoppingBag, Mail, Phone, MapPin, Github, Linkedin, Twitter, Facebook, Instagram, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export function Footer() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const { isDark } = useTheme();
 
   const scrollToTop = () => {
@@ -167,7 +167,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-muted-foreground text-sm">
-            © 2024 Digital Emporium. All rights reserved.
+            © 2026 Digital Emporium. All rights reserved.
           </p>
           <div className="flex gap-4">
             <button className="text-muted-foreground hover:text-primary transition-colors text-sm">

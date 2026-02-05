@@ -52,7 +52,7 @@ const defaultSettings: SiteSettings = {
   heroImages: [],
   servicesImages: [],
   testimonialsBackground: '',
-  footerText: '© 2024 Digital Emporium. All rights reserved.',
+  footerText: '© 2026 Digital Emporium. All rights reserved.',
   googleAnalyticsId: '',
   customScripts: '',
   carouselImages: [],
@@ -242,7 +242,7 @@ export function SiteSettings() {
                   id="footerText"
                   value={settings.footerText}
                   onChange={(e) => setSettings(prev => ({ ...prev, footerText: e.target.value }))}
-                  placeholder="© 2024 Digital Emporium. All rights reserved."
+                  placeholder="© 2026 Digital Emporium. All rights reserved."
                   rows={2}
                 />
               </div>

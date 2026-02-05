@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const values = [
@@ -56,7 +56,7 @@ const team = [
 
 export function About() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const { isDark } = useTheme();
 
   return (
@@ -108,7 +108,7 @@ export function About() {
             >
               <div className={`w-48 h-48 md:w-64 md:h-64 rounded-3xl ${isDark ? 'bg-primary' : 'bg-primary/10'} flex items-center justify-center shadow-2xl`}>
                 <svg className={`w-24 h-24 md:w-32 md:h-32 ${isDark ? 'text-primary-foreground' : 'text-primary'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 3h18v18H3zM3 9h18M9 3v18"/>
+                  <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/>
                 </svg>
               </div>
             </motion.div>
