@@ -1,15 +1,22 @@
 import { supabase } from '@/lib/supabase';
 import type { Service, Project, Testimonial, QuoteRequest, SiteSettings } from '@/types';
 
-// Services
+// ============================================
+// SERVICIOS
+// ============================================
+
 export const getServices = async (): Promise<Service[]> => {
   const { data, error } = await supabase
     .from('services')
     .select('*')
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
-  return data.map(item => ({
+  if (error) {
+    console.error('Error al obtener servicios:', error);
+    throw error;
+  }
+  
+  return (data || []).map(item => ({
     ...item,
     createdAt: new Date(item.created_at),
     updatedAt: new Date(item.updated_at),
@@ -45,7 +52,11 @@ export const addService = async (service: Omit<Service, 'id' | 'createdAt' | 'up
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al agregar servicio:', error);
+    throw error;
+  }
+  
   return data.id;
 };
 
@@ -62,7 +73,10 @@ export const updateService = async (id: string, service: Partial<Service>) => {
     .update(updateData)
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al actualizar servicio:', error);
+    throw error;
+  }
 };
 
 export const deleteService = async (id: string) => {
@@ -71,18 +85,28 @@ export const deleteService = async (id: string) => {
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al eliminar servicio:', error);
+    throw error;
+  }
 };
 
-// Projects
+// ============================================
+// PROYECTOS
+// ============================================
+
 export const getProjects = async (): Promise<Project[]> => {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
-  return data.map(item => ({
+  if (error) {
+    console.error('Error al obtener proyectos:', error);
+    throw error;
+  }
+  
+  return (data || []).map(item => ({
     ...item,
     longDescription: item.long_description,
     completionDate: item.completion_date,
@@ -123,7 +147,11 @@ export const addProject = async (project: Omit<Project, 'id' | 'createdAt' | 'up
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al agregar proyecto:', error);
+    throw error;
+  }
+  
   return data.id;
 };
 
@@ -148,7 +176,10 @@ export const updateProject = async (id: string, project: Partial<Project>) => {
     .update(updateData)
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al actualizar proyecto:', error);
+    throw error;
+  }
 };
 
 export const deleteProject = async (id: string) => {
@@ -157,18 +188,28 @@ export const deleteProject = async (id: string) => {
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al eliminar proyecto:', error);
+    throw error;
+  }
 };
 
-// Testimonials
+// ============================================
+// TESTIMONIOS
+// ============================================
+
 export const getTestimonials = async (): Promise<Testimonial[]> => {
   const { data, error } = await supabase
     .from('testimonials')
     .select('*')
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
-  return data.map(item => ({
+  if (error) {
+    console.error('Error al obtener testimonios:', error);
+    throw error;
+  }
+  
+  return (data || []).map(item => ({
     ...item,
     clientName: item.client_name,
     createdAt: new Date(item.created_at),
@@ -202,7 +243,11 @@ export const addTestimonial = async (testimonial: Omit<Testimonial, 'id' | 'crea
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al agregar testimonio:', error);
+    throw error;
+  }
+  
   return data.id;
 };
 
@@ -218,7 +263,10 @@ export const updateTestimonial = async (id: string, testimonial: Partial<Testimo
     .update(updateData)
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al actualizar testimonio:', error);
+    throw error;
+  }
 };
 
 export const deleteTestimonial = async (id: string) => {
@@ -227,18 +275,28 @@ export const deleteTestimonial = async (id: string) => {
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al eliminar testimonio:', error);
+    throw error;
+  }
 };
 
-// Quote Requests
+// ============================================
+// SOLICITUDES DE COTIZACIÓN
+// ============================================
+
 export const getQuoteRequests = async (): Promise<QuoteRequest[]> => {
   const { data, error } = await supabase
     .from('quote_requests')
     .select('*')
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
-  return data.map(item => ({
+  if (error) {
+    console.error('Error al obtener solicitudes:', error);
+    throw error;
+  }
+  
+  return (data || []).map(item => ({
     ...item,
     fullName: item.full_name,
     projectDetails: item.project_details,
@@ -277,7 +335,11 @@ export const addQuoteRequest = async (request: Omit<QuoteRequest, 'id' | 'create
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al agregar solicitud:', error);
+    throw error;
+  }
+  
   return data.id;
 };
 
@@ -302,7 +364,10 @@ export const updateQuoteRequest = async (id: string, request: Partial<QuoteReque
     .update(updateData)
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al actualizar solicitud:', error);
+    throw error;
+  }
 };
 
 export const deleteQuoteRequest = async (id: string) => {
@@ -311,10 +376,16 @@ export const deleteQuoteRequest = async (id: string) => {
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al eliminar solicitud:', error);
+    throw error;
+  }
 };
 
-// Site Settings
+// ============================================
+// CONFIGURACIÓN DEL SITIO
+// ============================================
+
 export const getSiteSettings = async (): Promise<SiteSettings | null> => {
   const { data, error } = await supabase
     .from('site_settings')
@@ -322,7 +393,11 @@ export const getSiteSettings = async (): Promise<SiteSettings | null> => {
     .eq('id', 'site')
     .single();
   
-  if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned"
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error al obtener configuración:', error);
+    throw error;
+  }
+  
   if (!data) return null;
 
   return {
@@ -370,7 +445,6 @@ export const subscribeToSiteSettings = (callback: (settings: SiteSettings | null
 
 export const updateSiteSettings = async (settings: Partial<SiteSettings>) => {
   const updateData: any = { ...settings };
-  // Mapping camelCase to snake_case for the DB
   const mapping: Record<string, string> = {
     siteName: 'site_name',
     heroTitle: 'hero_title',
@@ -411,42 +485,78 @@ export const updateSiteSettings = async (settings: Partial<SiteSettings>) => {
     .from('site_settings')
     .upsert({ id: 'site', ...updateData });
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error al actualizar configuración:', error);
+    throw error;
+  }
 };
 
-// Storage
+// ============================================
+// STORAGE - IMÁGENES
+// ============================================
+
 export const uploadImage = async (file: File, path: string): Promise<string> => {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Math.random()}.${fileExt}`;
+  // Validar que el archivo sea una imagen
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+  if (!validTypes.includes(file.type)) {
+    throw new Error(`Tipo de archivo no válido: ${file.type}. Solo se permiten imágenes.`);
+  }
+
+  // Validar tamaño (máximo 5MB)
+  const maxSize = 5 * 1024 * 1024;
+  if (file.size > maxSize) {
+    throw new Error(`Archivo demasiado grande: ${(file.size / 1024 / 1024).toFixed(2)}MB. Máximo: 5MB`);
+  }
+
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+  const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
   const filePath = `${path}/${fileName}`;
+
+  console.log('Subiendo archivo:', {
+    bucket: 'images',
+    path: filePath,
+    type: file.type,
+    size: file.size
+  });
 
   const { error: uploadError } = await supabase.storage
     .from('images')
-    .upload(filePath, file);
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type
+    });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    console.error('Error de subida:', uploadError);
+    throw new Error(`Error al subir imagen: ${uploadError.message}`);
+  }
 
-  const { data } = supabase.storage
+  const { data: publicUrlData } = supabase.storage
     .from('images')
     .getPublicUrl(filePath);
 
-  return data.publicUrl;
+  console.log('URL pública generada:', publicUrlData.publicUrl);
+
+  return publicUrlData.publicUrl;
 };
 
 export const deleteImage = async (url: string) => {
   try {
-    // Extract path from public URL
     const urlObj = new URL(url);
     const pathParts = urlObj.pathname.split('/');
-    // Assuming URL format: .../storage/v1/object/public/images/path/to/file
     const imagePath = pathParts.slice(pathParts.indexOf('images') + 1).join('/');
     
     const { error } = await supabase.storage
       .from('images')
       .remove([imagePath]);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error al eliminar imagen:', error);
+      throw error;
+    }
   } catch (error) {
-    console.error('Error deleting image:', error);
+    console.error('Error al eliminar imagen:', error);
+    throw error;
   }
 };

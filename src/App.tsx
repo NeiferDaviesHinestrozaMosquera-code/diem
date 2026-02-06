@@ -1,14 +1,17 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Home } from '@/pages/Home';
 import { Services } from '@/pages/Services';
 import { Projects } from '@/pages/Projects';
 import { About } from '@/pages/About';
 import { Contact } from '@/pages/Contact';
 import { Quote } from '@/pages/Quote';
+import { Login } from '@/pages/admin/Login';
 import { Dashboard } from '@/pages/admin/Dashboard';
 import { ServicesAdmin } from '@/pages/admin/ServicesAdmin';
 import { ProjectsAdmin } from '@/pages/admin/ProjectsAdmin';
@@ -21,10 +24,13 @@ import './App.css';
 function AppContent() {
   const { pathname } = window.location;
   const isAdmin = pathname.startsWith('/admin');
+  const isLoginPage = pathname === '/admin/login';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header isAdmin={isAdmin} />
+      {/* No mostrar Header en la página de login */}
+      {!isLoginPage && <Header isAdmin={isAdmin} />}
+      
       <main className={isAdmin ? '' : 'pt-20'}>
         <Routes>
           {/* Public Routes */}
@@ -35,16 +41,64 @@ function AppContent() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/quote" element={<Quote />} />
 
-          {/* Admin Routes */}
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/services" element={<ServicesAdmin />} />
-          <Route path="/admin/projects" element={<ProjectsAdmin />} />
-          <Route path="/admin/testimonials" element={<TestimonialsAdmin />} />
-          <Route path="/admin/inquiries" element={<ClientInquiries />} />
-          <Route path="/admin/settings" element={<SiteSettings />} />
+          {/* Admin Login Route (Pública) */}
+          <Route path="/admin/login" element={<Login />} />
+
+          {/* Protected Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/services"
+            element={
+              <ProtectedRoute>
+                <ServicesAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/projects"
+            element={
+              <ProtectedRoute>
+                <ProjectsAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/testimonials"
+            element={
+              <ProtectedRoute>
+                <TestimonialsAdmin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/inquiries"
+            element={
+              <ProtectedRoute>
+                <ClientInquiries />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute>
+                <SiteSettings />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
+      
+      {/* No mostrar Footer en páginas admin */}
       {!isAdmin && <Footer />}
+      
       <Toaster position="top-center" />
     </div>
   );
@@ -54,7 +108,9 @@ function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <AppContent />
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   );
