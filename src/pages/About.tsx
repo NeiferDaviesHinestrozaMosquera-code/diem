@@ -33,12 +33,12 @@ const values = [
 
 const team = [
   {
-    name: 'Alex Rodriguez',
+    name: 'Davies Hinestroza',
     role: 'CEO & Founder',
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
   },
   {
-    name: 'Sarah Chen',
+    name: 'Ian Moore',
     role: 'CTO',
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
   },

@@ -53,7 +53,7 @@ export function AdminHeader() {
                 <LayoutDashboard className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="font-bold text-lg">DIEM Admin</h1>
+                <h1 className="font-bold text-lg">Digital Emporium Admin</h1>
                 <p className="text-xs text-white/70">Panel de Control</p>
               </div>
             </Link>

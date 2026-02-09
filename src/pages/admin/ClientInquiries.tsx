@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Eye, FileText, Clock, Sparkles, DollarSign, Calendar,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Download, RefreshCw, Globe, Trash2,
+  CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -16,38 +17,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
 import {
-  updateQuoteRequest, subscribeToQuoteRequests,
+  updateQuoteRequest,
+  subscribeToQuoteRequests,
+  getQuoteRequests,
 } from '@/services/supabase';
+import { integratedReportService } from '@/services/integratedReportService';
+import { pdfService } from '@/services/pdfService';
 import type { QuoteRequest, AIReport } from '@/types';
-
-// Mock AI generation - In real implementation, this would call Google's Gemini API
-const generateAIReport = async (_projectDetails: string, service: string): Promise<AIReport> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Mock response based on service type
-  const baseCost = service.includes('Web') ? 5000 :
-                   service.includes('AI') ? 8000 :
-                   service.includes('Mobile') ? 12000 :
-                   service.includes('E-Commerce') ? 10000 : 3000;
-
-  return {
-    estimatedTime: '4-6 weeks',
-    totalCost: baseCost + Math.floor(Math.random() * 2000),
-    partialCosts: {
-      development: Math.floor(baseCost * 0.5),
-      design: Math.floor(baseCost * 0.2),
-      testing: Math.floor(baseCost * 0.15),
-      deployment: Math.floor(baseCost * 0.15),
-    },
-    difficultyLevel: Math.random() > 0.6 ? 'high' : Math.random() > 0.3 ? 'medium' : 'low',
-    requiredTeamMembers: Math.floor(Math.random() * 3) + 2,
-    recommendedTechnologies: ['React', 'Node.js', 'MongoDB', 'AWS'],
-    additionalNotes: 'Project requires careful planning and regular client communication.',
-  };
-};
 
 export function ClientInquiries() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
@@ -56,6 +44,10 @@ export function ClientInquiries() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [generatingQuoteId, setGeneratingQuoteId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<'es' | 'en'>('es');
   const itemsPerPage = 8;
 
   useEffect(() => {
@@ -65,22 +57,154 @@ export function ClientInquiries() {
     return unsubscribe;
   }, []);
 
-  const handleGenerateReport = async (quote: QuoteRequest) => {
-    if (quote.aiReport) {
-      setSelectedQuote(quote);
+  // Refresh quotes manually
+  const refreshQuotes = async () => {
+    try {
+      const data = await getQuoteRequests();
+      setQuotes(data);
+      toast.success('Quotes refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh quotes');
+    }
+  };
+
+  const handleGenerateReport = async (quote: QuoteRequest, language: 'es' | 'en' = 'es') => {
+    setIsGeneratingReport(true);
+    setGeneratingQuoteId(quote.id);
+
+    try {
+      toast.info(`Generating AI report in ${language === 'es' ? 'Spanish' : 'English'}...`);
+
+      const result = await integratedReportService.processQuoteRequest(quote, {
+        language,
+        generatePDF: true,
+        uploadPDF: true,
+      });
+
+      toast.success('AI report generated successfully!');
+
+      // Refresh the quotes to get the updated data
+      await refreshQuotes();
+
+      // Update selected quote if it's the same one
+      if (selectedQuote?.id === quote.id) {
+        const updatedQuote = {
+          ...quote,
+          aiReport: result.aiReport,
+          pdfUrl: result.pdfUrl,
+          status: 'processed' as const,
+        };
+        setSelectedQuote(updatedQuote);
+      }
+    } catch (error) {
+      console.error('Error generating AI report:', error);
+      toast.error('Failed to generate AI report');
+    } finally {
+      setIsGeneratingReport(false);
+      setGeneratingQuoteId(null);
+    }
+  };
+
+  const handleRegenerateReport = async (quote: QuoteRequest, language: 'es' | 'en' = 'es') => {
+    if (!quote.aiReport) {
+      handleGenerateReport(quote, language);
       return;
     }
 
     setIsGeneratingReport(true);
+    setGeneratingQuoteId(quote.id);
+
     try {
-      const report = await generateAIReport(quote.projectDetails, quote.service);
-      await updateQuoteRequest(quote.id, { aiReport: report });
-      toast.success('AI report generated successfully');
-      setSelectedQuote({ ...quote, aiReport: report });
+      toast.info('Regenerating AI report...');
+
+      const result = await integratedReportService.regenerateComplete(quote, language, true);
+
+      toast.success('AI report regenerated successfully!');
+
+      await refreshQuotes();
+
+      if (selectedQuote?.id === quote.id) {
+        const updatedQuote = {
+          ...quote,
+          aiReport: result.aiReport,
+          pdfUrl: result.pdfUrl,
+        };
+        setSelectedQuote(updatedQuote);
+      }
     } catch (error) {
-      toast.error('Failed to generate AI report');
+      console.error('Error regenerating AI report:', error);
+      toast.error('Failed to regenerate AI report');
     } finally {
       setIsGeneratingReport(false);
+      setGeneratingQuoteId(null);
+    }
+  };
+
+  const handleTranslateReport = async (quote: QuoteRequest, targetLanguage: 'es' | 'en') => {
+    setIsGeneratingReport(true);
+    setGeneratingQuoteId(quote.id);
+
+    try {
+      toast.info(`Translating report to ${targetLanguage === 'es' ? 'Spanish' : 'English'}...`);
+
+      const result = await integratedReportService.generateTranslation(
+        quote,
+        targetLanguage,
+        true
+      );
+
+      toast.success('Report translated successfully!');
+
+      await refreshQuotes();
+
+      if (selectedQuote?.id === quote.id) {
+        const updatedQuote = {
+          ...quote,
+          aiReport: result.aiReport,
+          pdfUrl: result.pdfUrl,
+        };
+        setSelectedQuote(updatedQuote);
+      }
+    } catch (error) {
+      console.error('Error translating report:', error);
+      toast.error('Failed to translate report');
+    } finally {
+      setIsGeneratingReport(false);
+      setGeneratingQuoteId(null);
+    }
+  };
+
+  const handleDownloadPDF = async (quote: QuoteRequest, language: 'es' | 'en' = 'es') => {
+    if (!quote.aiReport) {
+      toast.error('No AI report available to download');
+      return;
+    }
+
+    try {
+      toast.info('Downloading PDF...');
+      pdfService.downloadReportPDF(quote, language);
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error('Failed to download PDF');
+    }
+  };
+
+  const handleDeletePDF = async (quote: QuoteRequest) => {
+    if (!quote.pdfUrl) {
+      toast.error('No PDF to delete');
+      return;
+    }
+
+    try {
+      toast.info('Deleting PDF...');
+      await pdfService.deletePDFFromStorage(quote.pdfUrl);
+      await updateQuoteRequest(quote.id, { pdfUrl: undefined });
+      toast.success('PDF deleted successfully');
+      await refreshQuotes();
+    } catch (error) {
+      console.error('Error deleting PDF:', error);
+      toast.error('Failed to delete PDF');
     }
   };
 
@@ -90,6 +214,34 @@ export function ClientInquiries() {
       toast.success('Status updated successfully');
     } catch (error) {
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleDeleteQuote = async () => {
+    if (!quoteToDelete) return;
+
+    try {
+      const quote = quotes.find(q => q.id === quoteToDelete);
+      
+      // Delete PDF if exists
+      if (quote?.pdfUrl) {
+        try {
+          await pdfService.deletePDFFromStorage(quote.pdfUrl);
+        } catch (error) {
+          console.warn('Failed to delete PDF:', error);
+        }
+      }
+
+      // Delete quote (you'll need to implement deleteQuoteRequest in supabase.ts)
+      // await deleteQuoteRequest(quoteToDelete);
+      
+      toast.success('Quote deleted successfully');
+      setShowDeleteDialog(false);
+      setQuoteToDelete(null);
+      await refreshQuotes();
+    } catch (error) {
+      console.error('Error deleting quote:', error);
+      toast.error('Failed to delete quote');
     }
   };
 
@@ -107,21 +259,38 @@ export function ClientInquiries() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-500/20 text-yellow-700';
-      case 'reviewed': return 'bg-blue-500/20 text-blue-700';
-      case 'quoted': return 'bg-purple-500/20 text-purple-700';
-      case 'approved': return 'bg-green-500/20 text-green-700';
-      case 'rejected': return 'bg-red-500/20 text-red-700';
+      case 'pending': return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400';
+      case 'processing': return 'bg-blue-500/20 text-blue-700 dark:text-blue-400';
+      case 'processed': return 'bg-green-500/20 text-green-700 dark:text-green-400';
+      case 'error': return 'bg-red-500/20 text-red-700 dark:text-red-400';
+      case 'archived': return 'bg-gray-500/20 text-gray-700 dark:text-gray-400';
       default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'processing': return <RefreshCw className="w-4 h-4 animate-spin" />;
+      case 'processed': return <CheckCircle className="w-4 h-4" />;
+      case 'error': return <XCircle className="w-4 h-4" />;
+      case 'archived': return <FileText className="w-4 h-4" />;
+      default: return <AlertCircle className="w-4 h-4" />;
     }
   };
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Client Inquiries</h1>
-        <p className="text-muted-foreground">Manage quote requests and generate AI reports</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Client Inquiries</h1>
+          <p className="text-muted-foreground">Manage quote requests and generate AI reports</p>
+        </div>
+        <Button onClick={refreshQuotes} variant="outline" size="sm">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Refresh
+        </Button>
       </div>
 
       {/* Filters */}
@@ -142,10 +311,10 @@ export function ClientInquiries() {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="reviewed">Reviewed</SelectItem>
-            <SelectItem value="quoted">Quoted</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="processing">Processing</SelectItem>
+            <SelectItem value="processed">Processed</SelectItem>
+            <SelectItem value="error">Error</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -155,8 +324,8 @@ export function ClientInquiries() {
         {[
           { label: 'Total Requests', value: quotes.length, icon: FileText, color: 'bg-blue-500' },
           { label: 'Pending', value: quotes.filter(q => q.status === 'pending').length, icon: Clock, color: 'bg-yellow-500' },
-          { label: 'Quoted', value: quotes.filter(q => q.status === 'quoted').length, icon: DollarSign, color: 'bg-green-500' },
-          { label: 'Avg Response Time', value: '2.5h', icon: Calendar, color: 'bg-purple-500' },
+          { label: 'Processed', value: quotes.filter(q => q.status === 'processed').length, icon: CheckCircle, color: 'bg-green-500' },
+          { label: 'With AI Reports', value: quotes.filter(q => q.aiReport).length, icon: Sparkles, color: 'bg-purple-500' },
         ].map((stat, index) => (
           <motion.div
             key={stat.label}
@@ -188,57 +357,54 @@ export function ClientInquiries() {
                 <tr>
                   <th className="text-left p-4 font-medium">Client</th>
                   <th className="text-left p-4 font-medium">Service</th>
-                  <th className="text-left p-4 font-medium hidden md:table-cell">Date</th>
                   <th className="text-left p-4 font-medium">Status</th>
+                  <th className="text-left p-4 font-medium">AI Report</th>
+                  <th className="text-left p-4 font-medium">Date</th>
                   <th className="text-left p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {currentQuotes.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center p-8 text-muted-foreground">
-                      No inquiries found
-                    </td>
-                  </tr>
-                ) : (
-                  currentQuotes.map((quote, index) => (
+                <AnimatePresence mode="popLayout">
+                  {currentQuotes.map((quote, index) => (
                     <motion.tr
                       key={quote.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
                       transition={{ delay: index * 0.05 }}
                       className="border-b border-border hover:bg-muted/30 transition-colors"
                     >
                       <td className="p-4">
                         <div>
-                          <p className="font-medium">{quote.fullName}</p>
-                          <p className="text-sm text-muted-foreground">{quote.email}</p>
+                          <div className="font-medium">{quote.fullName}</div>
+                          <div className="text-sm text-muted-foreground">{quote.email}</div>
                         </div>
                       </td>
                       <td className="p-4">
                         <span className="text-sm">{quote.service}</span>
                       </td>
-                      <td className="p-4 hidden md:table-cell">
+                      <td className="p-4">
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(quote.status)}`}>
+                          {getStatusIcon(quote.status)}
+                          <span className="capitalize">{quote.status}</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        {quote.aiReport ? (
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="text-sm text-green-600 font-medium">
+                              {quote.aiReport.language === 'es' ? '🇪🇸' : '🇬🇧'}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Not generated</span>
+                        )}
+                      </td>
+                      <td className="p-4">
                         <span className="text-sm text-muted-foreground">
                           {new Date(quote.createdAt).toLocaleDateString()}
                         </span>
-                      </td>
-                      <td className="p-4">
-                        <Select
-                          value={quote.status}
-                          onValueChange={(value) => handleStatusChange(quote.id, value)}
-                        >
-                          <SelectTrigger className={`w-32 ${getStatusColor(quote.status)}`}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="reviewed">Reviewed</SelectItem>
-                            <SelectItem value="quoted">Quoted</SelectItem>
-                            <SelectItem value="approved">Approved</SelectItem>
-                            <SelectItem value="rejected">Rejected</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
@@ -247,24 +413,25 @@ export function ClientInquiries() {
                             variant="outline"
                             onClick={() => setSelectedQuote(quote)}
                           >
-                            <Eye className="w-4 h-4 mr-1" />
-                            <span className="hidden sm:inline">View</span>
+                            <Eye className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => handleGenerateReport(quote)}
-                            disabled={isGeneratingReport}
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90"
-                            title={quote.aiReport ? 'View AI Report' : 'Generate AI Report'}
+                            variant="outline"
+                            onClick={() => quote.aiReport 
+                              ? handleRegenerateReport(quote, quote.aiReport.language)
+                              : handleGenerateReport(quote, selectedLanguage)
+                            }
+                            disabled={isGeneratingReport && generatingQuoteId === quote.id}
                           >
-                            {isGeneratingReport ? (
+                            {isGeneratingReport && generatingQuoteId === quote.id ? (
                               <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
+                                className="w-4 h-4 border-2 border-current border-t-transparent rounded-full"
                               />
                             ) : quote.aiReport ? (
-                              <FileText className="w-4 h-4" />
+                              <RefreshCw className="w-4 h-4" />
                             ) : (
                               <Sparkles className="w-4 h-4" />
                             )}
@@ -272,8 +439,8 @@ export function ClientInquiries() {
                         </div>
                       </td>
                     </motion.tr>
-                  ))
-                )}
+                  ))}
+                </AnimatePresence>
               </tbody>
             </table>
           </div>
@@ -331,13 +498,37 @@ export function ClientInquiries() {
 
       {/* Quote Details Dialog */}
       <Dialog open={!!selectedQuote} onOpenChange={() => setSelectedQuote(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           {selectedQuote && (
             <>
               <DialogHeader>
-                <DialogTitle>Quote Details</DialogTitle>
+                <DialogTitle className="flex items-center justify-between">
+                  <span>Quote Details</span>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={selectedQuote.status}
+                      onValueChange={(value) => handleStatusChange(selectedQuote.id, value)}
+                    >
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="processed">Processed</SelectItem>
+                        <SelectItem value="error">Error</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </DialogTitle>
+                <DialogDescription>
+                  Submitted on {new Date(selectedQuote.createdAt).toLocaleString()}
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4 mt-4">
+
+              <div className="space-y-6 mt-4">
+                {/* Client Information */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <Label>Full Name</Label>
@@ -361,12 +552,14 @@ export function ClientInquiries() {
                   </div>
                   <div>
                     <Label>Status</Label>
-                    <p className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedQuote.status)}`}>
-                      {selectedQuote.status}
-                    </p>
+                    <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedQuote.status)}`}>
+                      {getStatusIcon(selectedQuote.status)}
+                      <span className="capitalize">{selectedQuote.status}</span>
+                    </div>
                   </div>
                 </div>
 
+                {/* Project Details */}
                 <div>
                   <Label>Project Details</Label>
                   <div className="p-4 bg-muted/50 rounded-lg mt-2">
@@ -374,72 +567,185 @@ export function ClientInquiries() {
                   </div>
                 </div>
 
-                <div>
-                  <Label>Submitted</Label>
-                  <p className="text-muted-foreground">
-                    {new Date(selectedQuote.createdAt).toLocaleString()}
-                  </p>
+                {/* AI Report Actions */}
+                <div className="flex flex-wrap gap-2 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <Button
+                    size="sm"
+                    onClick={() => handleGenerateReport(selectedQuote, selectedLanguage)}
+                    disabled={isGeneratingReport}
+                    variant={selectedQuote.aiReport ? 'outline' : 'default'}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    {selectedQuote.aiReport ? 'Regenerate Report' : 'Generate AI Report'}
+                  </Button>
+
+                  {selectedQuote.aiReport && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadPDF(selectedQuote, selectedQuote.aiReport!.language)}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download PDF
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTranslateReport(
+                          selectedQuote,
+                          selectedQuote.aiReport!.language === 'es' ? 'en' : 'es'
+                        )}
+                        disabled={isGeneratingReport}
+                      >
+                        <Globe className="w-4 h-4 mr-2" />
+                        Translate to {selectedQuote.aiReport.language === 'es' ? 'English' : 'Spanish'}
+                      </Button>
+
+                      {selectedQuote.pdfUrl && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(selectedQuote.pdfUrl, '_blank')}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          View PDF
+                        </Button>
+                      )}
+                    </>
+                  )}
+
+                  {!selectedQuote.aiReport && (
+                    <Select value={selectedLanguage} onValueChange={(value: 'es' | 'en') => setSelectedLanguage(value)}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="es">🇪🇸 Español</SelectItem>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
 
+                {/* AI Report Display */}
                 {selectedQuote.aiReport && (
-                  <div className="p-4 border border-primary/20 rounded-lg bg-primary/5">
-                    <h4 className="font-semibold mb-3 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
+                  <div className="p-6 border border-primary/20 rounded-xl bg-gradient-to-br from-primary/5 to-transparent">
+                    <h4 className="font-semibold mb-4 flex items-center gap-2 text-lg">
+                      <Sparkles className="w-5 h-5 text-primary" />
                       AI Generated Report
+                      <span className="text-sm font-normal text-muted-foreground">
+                        ({selectedQuote.aiReport.language === 'es' ? '🇪🇸 Spanish' : '🇬🇧 English'})
+                      </span>
                     </h4>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Estimated Time</Label>
-                        <p className="font-medium">{selectedQuote.aiReport.estimatedTime}</p>
+
+                    {/* Key Metrics Grid */}
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                      <div className="p-4 bg-card rounded-lg border">
+                        <Label className="text-xs text-muted-foreground">Estimated Time</Label>
+                        <p className="font-bold text-lg mt-1">{selectedQuote.aiReport.estimatedTime}</p>
                       </div>
-                      <div>
-                        <Label>Total Cost</Label>
-                        <p className="font-medium text-green-600">${selectedQuote.aiReport.totalCost.toLocaleString()}</p>
+                      <div className="p-4 bg-card rounded-lg border">
+                        <Label className="text-xs text-muted-foreground">Total Cost</Label>
+                        <p className="font-bold text-lg text-green-600 mt-1">
+                          ${selectedQuote.aiReport.totalCost.toLocaleString()}
+                        </p>
                       </div>
-                      <div>
-                        <Label>Difficulty Level</Label>
-                        <p className="font-medium capitalize">{selectedQuote.aiReport.difficultyLevel}</p>
+                      <div className="p-4 bg-card rounded-lg border">
+                        <Label className="text-xs text-muted-foreground">Difficulty</Label>
+                        <p className="font-bold text-lg capitalize mt-1">
+                          {selectedQuote.aiReport.difficultyLevel}
+                        </p>
                       </div>
-                      <div>
-                        <Label>Team Size</Label>
-                        <p className="font-medium">{selectedQuote.aiReport.requiredTeamMembers} members</p>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <Label>Cost Breakdown</Label>
-                      <div className="space-y-2 mt-2">
-                        <div className="flex justify-between">
-                          <span>Development</span>
-                          <span className="font-medium">${selectedQuote.aiReport.partialCosts.development.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Design</span>
-                          <span className="font-medium">${selectedQuote.aiReport.partialCosts.design.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Testing</span>
-                          <span className="font-medium">${selectedQuote.aiReport.partialCosts.testing.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Deployment</span>
-                          <span className="font-medium">${selectedQuote.aiReport.partialCosts.deployment.toLocaleString()}</span>
-                        </div>
+                      <div className="p-4 bg-card rounded-lg border">
+                        <Label className="text-xs text-muted-foreground">Team Size</Label>
+                        <p className="font-bold text-lg mt-1">
+                          {selectedQuote.aiReport.requiredTeamMembers} members
+                        </p>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <Label>Recommended Technologies</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
+
+                    {/* Cost Breakdown */}
+                    <div className="mb-6">
+                      <Label className="font-semibold mb-3 block">Cost Breakdown</Label>
+                      <div className="space-y-2 p-4 bg-card rounded-lg border">
+                        {[
+                          { label: 'Development', value: selectedQuote.aiReport.partialCosts.development },
+                          { label: 'Design', value: selectedQuote.aiReport.partialCosts.design },
+                          { label: 'Testing', value: selectedQuote.aiReport.partialCosts.testing },
+                          { label: 'Deployment', value: selectedQuote.aiReport.partialCosts.deployment },
+                          selectedQuote.aiReport.partialCosts.projectManagement && {
+                            label: 'Project Management',
+                            value: selectedQuote.aiReport.partialCosts.projectManagement
+                          },
+                          selectedQuote.aiReport.partialCosts.maintenance && {
+                            label: 'Maintenance',
+                            value: selectedQuote.aiReport.partialCosts.maintenance
+                          },
+                        ].filter(Boolean).map((item: any) => (
+                          <div key={item.label} className="flex justify-between items-center">
+                            <span className="text-muted-foreground">{item.label}</span>
+                            <span className="font-semibold">${item.value.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Technologies */}
+                    <div className="mb-6">
+                      <Label className="font-semibold mb-3 block">Recommended Technologies</Label>
+                      <div className="flex flex-wrap gap-2">
                         {selectedQuote.aiReport.recommendedTechnologies.map((tech) => (
-                          <span key={tech} className="px-3 py-1 bg-primary/10 rounded-full text-sm">
+                          <span
+                            key={tech}
+                            className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium"
+                          >
                             {tech}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <Label>Additional Notes</Label>
-                      <p className="text-muted-foreground mt-1">{selectedQuote.aiReport.additionalNotes}</p>
-                    </div>
+
+                    {/* Recommendations */}
+                    {selectedQuote.aiReport.recommendations && selectedQuote.aiReport.recommendations.length > 0 && (
+                      <div className="mb-6">
+                        <Label className="font-semibold mb-3 block">Recommendations</Label>
+                        <ul className="space-y-2 p-4 bg-card rounded-lg border">
+                          {selectedQuote.aiReport.recommendations.map((rec, index) => (
+                            <li key={index} className="flex gap-2">
+                              <span className="text-primary font-bold">{index + 1}.</span>
+                              <span>{rec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Milestones */}
+                    {selectedQuote.aiReport.milestones && selectedQuote.aiReport.milestones.length > 0 && (
+                      <div className="mb-6">
+                        <Label className="font-semibold mb-3 block">Project Milestones</Label>
+                        <ul className="space-y-2 p-4 bg-card rounded-lg border">
+                          {selectedQuote.aiReport.milestones.map((milestone, index) => (
+                            <li key={index} className="flex gap-2">
+                              <span className="text-primary font-bold">{index + 1}.</span>
+                              <span>{milestone}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Additional Notes */}
+                    {selectedQuote.aiReport.additionalNotes && (
+                      <div>
+                        <Label className="font-semibold mb-3 block">Additional Notes</Label>
+                        <div className="p-4 bg-card rounded-lg border">
+                          <p className="text-muted-foreground">{selectedQuote.aiReport.additionalNotes}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -447,6 +753,25 @@ export function ClientInquiries() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the quote request
+              and all associated data including AI reports and PDFs.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setQuoteToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteQuote} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

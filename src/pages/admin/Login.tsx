@@ -202,7 +202,7 @@ export function Login() {
           transition={{ delay: 0.5 }}
           className="text-center text-sm text-muted-foreground mt-6"
         >
-          © {new Date().getFullYear()} DIEM. Todos los derechos reservados.
+          © {new Date().getFullYear()} Digital Emporium. Todos los derechos reservados.
         </motion.p>
       </motion.div>
     </div>
