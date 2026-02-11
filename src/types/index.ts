@@ -49,10 +49,11 @@ export interface QuoteRequest {
   phone: string;
   service: string;
   projectDetails: string;
-  status: 'pending' | 'reviewed' | 'quoted' | 'approved' | 'rejected';
+   status: 'pending' | 'reviewed' | 'quoted' | 'approved' | 'rejected' | 'processed' | 'error' | 'archived';
   createdAt: Date;
   updatedAt: Date;
   aiReport?: AIReport;
+  pdfUrl?: string;
 }
 
 export interface AIReport {
@@ -63,11 +64,17 @@ export interface AIReport {
     design: number;
     testing: number;
     deployment: number;
+    projectManagement?: number;
+    maintenance?: number;
   };
   difficultyLevel: 'low' | 'medium' | 'high';
   requiredTeamMembers: number;
   recommendedTechnologies: string[];
   additionalNotes: string;
+  recommendations?: string[];
+  milestones?: string[];
+  generatedAt?: string;
+  language: 'es' | 'en';
 }
 
 export interface SiteSettings {

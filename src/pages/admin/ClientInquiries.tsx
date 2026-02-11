@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Eye, FileText, Clock, Sparkles, DollarSign, Calendar,
-  ChevronLeft, ChevronRight, Download, RefreshCw, Globe, Trash2,
+  Search, Eye, FileText, Clock, Sparkles,
+  ChevronLeft, ChevronRight, Download, RefreshCw, Globe,
   CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +35,7 @@ import {
 } from '@/services/supabase';
 import { integratedReportService } from '@/services/integratedReportService';
 import { pdfService } from '@/services/pdfService';
-import type { QuoteRequest, AIReport } from '@/types';
+import type { QuoteRequest } from '@/types';
 
 export function ClientInquiries() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([]);
@@ -77,8 +77,8 @@ export function ClientInquiries() {
 
       const result = await integratedReportService.processQuoteRequest(quote, {
         language,
-        generatePDF: true,
-        uploadPDF: true,
+        generatePDF: false,
+        uploadPDF: false,
       });
 
       toast.success('AI report generated successfully!');
@@ -190,23 +190,7 @@ export function ClientInquiries() {
     }
   };
 
-  const handleDeletePDF = async (quote: QuoteRequest) => {
-    if (!quote.pdfUrl) {
-      toast.error('No PDF to delete');
-      return;
-    }
 
-    try {
-      toast.info('Deleting PDF...');
-      await pdfService.deletePDFFromStorage(quote.pdfUrl);
-      await updateQuoteRequest(quote.id, { pdfUrl: undefined });
-      toast.success('PDF deleted successfully');
-      await refreshQuotes();
-    } catch (error) {
-      console.error('Error deleting PDF:', error);
-      toast.error('Failed to delete PDF');
-    }
-  };
 
   const handleStatusChange = async (quoteId: string, newStatus: string) => {
     try {

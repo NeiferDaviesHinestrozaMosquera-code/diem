@@ -1,14 +1,19 @@
 /**
- * SERVICIO INTEGRADO DE REPORTES AI
+ * SERVICIO INTEGRADO DE REPORTES AI - VERSIÓN ACTUALIZADA
  * 
- * Este archivo combina genkitService y pdfService para proporcionar
- * una experiencia completa de generación, almacenamiento y gestión de reportes.
+ * Cambios principales:
+ * - Usa Edge Function en lugar de llamadas directas a Gemini (SEGURO)
+ * - Valida estados antes de actualizar en Supabase
+ * - Mejor manejo de errores y logging
  */
 
 import type { QuoteRequest, AIReport } from '@/types';
 import { genkitService } from './genkitService';
 import { pdfService } from './pdfService';
 import { updateQuoteRequest, getQuoteRequests } from './supabase';
+
+// Estados válidos
+type QuoteStatus = 'pending' | 'processing' | 'completed' | 'error' | 'archived';
 
 export class IntegratedReportService {
   private static instance: IntegratedReportService;
@@ -20,6 +25,20 @@ export class IntegratedReportService {
       IntegratedReportService.instance = new IntegratedReportService();
     }
     return IntegratedReportService.instance;
+  }
+
+  /**
+   * Valida que el estado sea uno de los permitidos
+   */
+  private validateStatus(status: string): QuoteStatus {
+    const validStatuses: QuoteStatus[] = ['pending', 'processing', 'completed', 'error', 'archived'];
+    
+    if (validStatuses.includes(status as QuoteStatus)) {
+      return status as QuoteStatus;
+    }
+    
+    console.warn(`⚠️ Estado inválido: ${status}, usando 'pending' por defecto`);
+    return 'pending';
   }
 
   /**
@@ -38,21 +57,32 @@ export class IntegratedReportService {
   }> {
     const { language = 'es', generatePDF = false, uploadPDF = false } = options;
 
-    try {
-      console.log('=== Iniciando procesamiento de cotización ===');
-      console.log(`Quote ID: ${quoteRequest.id}`);
-      console.log(`Opciones:`, { language, generatePDF, uploadPDF });
+    console.log('═══════════════════════════════════════════');
+    console.log('🚀 INICIANDO PROCESAMIENTO DE COTIZACIÓN');
+    console.log('═══════════════════════════════════════════');
+    console.log(`📋 Quote ID: ${quoteRequest.id}`);
+    console.log(`👤 Cliente: ${quoteRequest.fullName}`);
+    console.log(`🔧 Servicio: ${quoteRequest.service}`);
+    console.log(`🌐 Idioma: ${language}`);
+    console.log(`📄 Generar PDF: ${generatePDF}`);
+    console.log(`☁️ Subir PDF: ${uploadPDF}`);
+    console.log('───────────────────────────────────────────');
 
-      // Paso 1: Generar el reporte AI
-      console.log('Paso 1: Generando reporte AI...');
+    try {
+      // Paso 1: Generar el reporte AI usando Edge Function
+      console.log('\n📊 PASO 1: Generando reporte AI...');
       const aiReport = await genkitService.generateQuoteReport(quoteRequest, language);
-      console.log('✓ Reporte AI generado exitosamente');
+      console.log('✅ Reporte AI generado exitosamente');
+      console.log(`   💰 Costo: $${aiReport.totalCost}`);
+      console.log(`   ⏱️ Tiempo: ${aiReport.estimatedTime}`);
+      console.log(`   👥 Equipo: ${aiReport.requiredTeamMembers} personas`);
+      console.log(`   📈 Dificultad: ${aiReport.difficultyLevel}`);
 
       let pdfUrl: string | undefined;
 
       // Paso 2: Generar y subir PDF si se solicita
       if (generatePDF && uploadPDF) {
-        console.log('Paso 2: Generando y subiendo PDF...');
+        console.log('\n📄 PASO 2: Generando y subiendo PDF...');
         
         // Actualizar el quoteRequest con el aiReport para generar el PDF
         const updatedQuoteRequest = {
@@ -61,27 +91,35 @@ export class IntegratedReportService {
         };
 
         pdfUrl = await pdfService.uploadPDFToStorage(updatedQuoteRequest, language);
-        console.log('✓ PDF generado y subido exitosamente:', pdfUrl);
+        console.log('✅ PDF generado y subido exitosamente');
+        console.log(`   🔗 URL: ${pdfUrl}`);
 
         // Guardar la URL del PDF en la base de datos
         await updateQuoteRequest(quoteRequest.id, {
           pdfUrl,
         });
-        console.log('✓ URL del PDF guardada en Supabase');
+        console.log('✅ URL del PDF guardada en Supabase');
       } else if (generatePDF) {
-        console.log('Paso 2: Generando PDF (solo descarga local)...');
+        console.log('\n📄 PASO 2: Generando PDF (solo descarga local)...');
         const updatedQuoteRequest = {
           ...quoteRequest,
           aiReport,
         };
         pdfService.downloadReportPDF(updatedQuoteRequest, language);
-        console.log('✓ PDF descargado localmente');
+        console.log('✅ PDF descargado localmente');
       }
 
-      console.log('=== Procesamiento completado exitosamente ===');
+      console.log('\n═══════════════════════════════════════════');
+      console.log('✅ PROCESAMIENTO COMPLETADO EXITOSAMENTE');
+      console.log('═══════════════════════════════════════════\n');
+      
       return { aiReport, pdfUrl };
     } catch (error) {
-      console.error('Error en processQuoteRequest:', error);
+      console.error('\n❌ ERROR EN PROCESAMIENTO');
+      console.error('═══════════════════════════════════════════');
+      console.error('Error:', error);
+      console.error('Quote ID:', quoteRequest.id);
+      console.error('═══════════════════════════════════════════\n');
       throw error;
     }
   }
@@ -97,15 +135,15 @@ export class IntegratedReportService {
     aiReport: AIReport;
     pdfUrl?: string;
   }> {
-    console.log('Regenerando reporte completo...');
+    console.log('🔁 Regenerando reporte completo...');
     
     // Si existe un PDF anterior, eliminarlo
     if (quoteRequest.pdfUrl) {
       try {
         await pdfService.deletePDFFromStorage(quoteRequest.pdfUrl);
-        console.log('✓ PDF anterior eliminado');
+        console.log('✅ PDF anterior eliminado');
       } catch (error) {
-        console.warn('Advertencia: No se pudo eliminar el PDF anterior:', error);
+        console.warn('⚠️ Advertencia: No se pudo eliminar el PDF anterior:', error);
       }
     }
 
@@ -127,7 +165,7 @@ export class IntegratedReportService {
     aiReport: AIReport;
     pdfUrl?: string;
   }> {
-    console.log(`Generando traducción a ${targetLanguage}...`);
+    console.log(`🌍 Generando traducción a ${targetLanguage}...`);
     
     return this.processQuoteRequest(quoteRequest, {
       language: targetLanguage,
@@ -152,15 +190,16 @@ export class IntegratedReportService {
     for (const url of pdfUrls) {
       try {
         await pdfService.deletePDFFromStorage(url);
-        console.log('✓ PDF eliminado:', url);
+        console.log('✅ PDF eliminado:', url);
       } catch (error) {
-        console.warn('Advertencia: No se pudo eliminar PDF:', url, error);
+        console.warn('⚠️ Advertencia: No se pudo eliminar PDF:', url, error);
       }
     }
   }
 
   /**
    * Procesa múltiples cotizaciones en lote
+   * CON validación de estados
    */
   async processBatch(
     quoteRequestIds: string[],
@@ -178,15 +217,20 @@ export class IntegratedReportService {
       error?: string;
     }>
   > {
-    console.log(`Procesando ${quoteRequestIds.length} cotizaciones en lote...`);
+    console.log(`\n📦 Procesando ${quoteRequestIds.length} cotizaciones en lote...`);
+    console.log('═══════════════════════════════════════════\n');
     
     const results = [];
     const allQuoteRequests = await getQuoteRequests();
 
-    for (const id of quoteRequestIds) {
+    for (let i = 0; i < quoteRequestIds.length; i++) {
+      const id = quoteRequestIds[i];
+      console.log(`[${i + 1}/${quoteRequestIds.length}] Procesando: ${id}`);
+      
       const quoteRequest = allQuoteRequests.find((q) => q.id === id);
       
       if (!quoteRequest) {
+        console.error(`❌ Cotización no encontrada: ${id}`);
         results.push({
           quoteRequestId: id,
           success: false,
@@ -197,12 +241,15 @@ export class IntegratedReportService {
 
       try {
         const result = await this.processQuoteRequest(quoteRequest, options);
+        console.log(`✅ Procesado exitosamente: ${id}\n`);
         results.push({
           quoteRequestId: id,
           success: true,
           ...result,
         });
       } catch (error) {
+        console.error(`❌ Error procesando: ${id}`);
+        console.error(error);
         results.push({
           quoteRequestId: id,
           success: false,
@@ -211,8 +258,20 @@ export class IntegratedReportService {
       }
     }
 
-    console.log(`Lote procesado: ${results.filter((r) => r.success).length}/${results.length} exitosos`);
+    const successful = results.filter((r) => r.success).length;
+    console.log('\n═══════════════════════════════════════════');
+    console.log(`📊 Lote procesado: ${successful}/${results.length} exitosos`);
+    console.log('═══════════════════════════════════════════\n');
+    
     return results;
+  }
+
+  /**
+   * Actualiza el estado de manera segura
+   */
+  async updateStatus(quoteRequestId: string, status: QuoteStatus): Promise<void> {
+    const validStatus = this.validateStatus(status);
+    await updateQuoteRequest(quoteRequestId, { status: validStatus });
   }
 }
 
@@ -220,115 +279,11 @@ export class IntegratedReportService {
 export const integratedReportService = IntegratedReportService.getInstance();
 
 // ============================================
-// EJEMPLOS DE USO
+// HOOKS DE REACT ACTUALIZADOS
 // ============================================
 
 /**
- * EJEMPLO 1: Procesar una nueva cotización con todo incluido
- */
-export async function example1_ProcessNewQuote(quoteRequest: QuoteRequest) {
-  const result = await integratedReportService.processQuoteRequest(quoteRequest, {
-    language: 'es',
-    generatePDF: true,
-    uploadPDF: true,
-  });
-
-  console.log('Reporte AI:', result.aiReport);
-  console.log('PDF URL:', result.pdfUrl);
-}
-
-/**
- * EJEMPLO 2: Generar solo el reporte AI (sin PDF)
- */
-export async function example2_GenerateAIReportOnly(quoteRequest: QuoteRequest) {
-  const result = await genkitService.generateQuoteReport(quoteRequest, 'es');
-  console.log('Reporte AI generado:', result);
-}
-
-/**
- * EJEMPLO 3: Generar PDF de un reporte existente
- */
-export async function example3_GeneratePDFFromExisting(quoteRequest: QuoteRequest) {
-  // Verificar que tenga reporte AI
-  if (!quoteRequest.aiReport) {
-    throw new Error('Esta cotización no tiene reporte AI');
-  }
-
-  // Descargar PDF localmente
-  pdfService.downloadReportPDF(quoteRequest, 'es');
-
-  // O subir a Supabase Storage
-  const pdfUrl = await pdfService.uploadPDFToStorage(quoteRequest, 'es');
-  console.log('PDF subido:', pdfUrl);
-}
-
-/**
- * EJEMPLO 4: Regenerar reporte completo
- */
-export async function example4_RegenerateComplete(quoteRequest: QuoteRequest) {
-  const result = await integratedReportService.regenerateComplete(
-    quoteRequest,
-    'es',
-    true // uploadPDF
-  );
-
-  console.log('Reporte regenerado:', result);
-}
-
-/**
- * EJEMPLO 5: Generar versión en inglés
- */
-export async function example5_GenerateEnglishVersion(quoteRequest: QuoteRequest) {
-  const result = await integratedReportService.generateTranslation(
-    quoteRequest,
-    'en',
-    true // uploadPDF
-  );
-
-  console.log('Versión en inglés:', result);
-}
-
-/**
- * EJEMPLO 6: Procesar múltiples cotizaciones
- */
-export async function example6_ProcessBatch(quoteRequestIds: string[]) {
-  const results = await integratedReportService.processBatch(quoteRequestIds, {
-    language: 'es',
-    generatePDF: true,
-    uploadPDF: true,
-  });
-
-  results.forEach((result) => {
-    if (result.success) {
-      console.log(`✓ ${result.quoteRequestId}: Procesado exitosamente`);
-    } else {
-      console.log(`✗ ${result.quoteRequestId}: ${result.error}`);
-    }
-  });
-}
-
-/**
- * EJEMPLO 7: Limpiar PDFs antiguos
- */
-export async function example7_CleanupOldPDFs(quoteRequestId: string) {
-  await integratedReportService.cleanupOldPDFs(quoteRequestId);
-  console.log('PDFs antiguos eliminados');
-}
-
-/**
- * EJEMPLO 8: Listar todos los PDFs de una cotización
- */
-export async function example8_ListAllPDFs(quoteRequestId: string) {
-  const pdfUrls = await integratedReportService.getAllPDFsForQuote(quoteRequestId);
-  console.log('PDFs encontrados:', pdfUrls);
-}
-
-// ============================================
-// HOOKS DE REACT (OPCIONAL)
-// ============================================
-
-/**
- * Hook de React para procesar cotizaciones
+ * Hook de React para procesar cotizaciones de forma segura
  */
 export function useQuoteProcessor() {
   const processQuote = async (

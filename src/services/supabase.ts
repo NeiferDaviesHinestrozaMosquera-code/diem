@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase-complete';
 import type { Service, Project, Testimonial, QuoteRequest, SiteSettings } from '@/types';
 
 // ============================================
@@ -301,6 +301,7 @@ export const getQuoteRequests = async (): Promise<QuoteRequest[]> => {
     fullName: item.full_name,
     projectDetails: item.project_details,
     aiReport: item.ai_report,
+    pdfUrl: item.pdf_url,  // ← AGREGAR
     createdAt: new Date(item.created_at),
     updatedAt: new Date(item.updated_at),
   } as QuoteRequest));
@@ -345,6 +346,7 @@ export const addQuoteRequest = async (request: Omit<QuoteRequest, 'id' | 'create
 
 export const updateQuoteRequest = async (id: string, request: Partial<QuoteRequest>) => {
   const updateData: any = { ...request };
+  
   if (request.fullName) {
     updateData.full_name = request.fullName;
     delete updateData.fullName;
@@ -357,6 +359,11 @@ export const updateQuoteRequest = async (id: string, request: Partial<QuoteReque
     updateData.ai_report = request.aiReport;
     delete updateData.aiReport;
   }
+  if (request.pdfUrl !== undefined) {  // ← AGREGAR
+    updateData.pdf_url = request.pdfUrl;
+    delete updateData.pdfUrl;
+  }
+  
   updateData.updated_at = new Date().toISOString();
 
   const { error } = await supabase

@@ -1,187 +1,102 @@
-// Configuración y servicio para Google Gemini API
-// Usa la API REST directamente para compatibilidad con el navegador
+// config/gemini.ts - VERSIÓN FINAL CORREGIDA
+// Ya NO llama directamente a Gemini desde el cliente
+// Ahora usa Supabase Edge Function para seguridad
 
-const GEMINI_API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY || '';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+import { supabase } from '@/lib/supabase-complete';
 
-// Prompt para generar reportes de cotización
-export const generateQuotePrompt = (projectDetails: string, service: string, language: 'es' | 'en' = 'es') => {
-  const isSpanish = language === 'es';
-  
-  return `${isSpanish ? 'Eres un experto en consultoría de proyectos de tecnología.' : 'You are a technology project consulting expert.'}
-
-${isSpanish ? 'Analiza los siguientes detalles del proyecto y genera un informe detallado de cotización en formato JSON.' : 'Analyze the following project details and generate a detailed quote report in JSON format.'}
-
-${isSpanish ? 'Servicio solicitado:' : 'Requested service:'} ${service}
-${isSpanish ? 'Detalles del proyecto:' : 'Project details:'} ${projectDetails}
-
-${isSpanish ? 'Responde ÚNICAMENTE con un objeto JSON válido con esta estructura exacta:' : 'Respond ONLY with a valid JSON object with this exact structure:'}
-
-{
-  "estimatedTime": "${isSpanish ? 'Tiempo estimado en semanas o meses' : 'Estimated time in weeks or months'}",
-  "totalCost": 5000,
-  "partialCosts": {
-    "development": 2500,
-    "design": 1000,
-    "testing": 750,
-    "deployment": 750,
-    "projectManagement": 500,
-    "maintenance": 250
-  },
-  "difficultyLevel": "medium",
-  "requiredTeamMembers": 3,
-  "recommendedTechnologies": ["React", "Node.js", "MongoDB"],
-  "additionalNotes": "${isSpanish ? 'Notas importantes sobre el proyecto' : 'Important notes about the project'}",
-  "recommendations": ["${isSpanish ? 'Recomendación 1' : 'Recommendation 1'}"],
-  "milestones": ["${isSpanish ? 'Hito 1' : 'Milestone 1'}"]
+// Tipo de reporte AI
+export interface AIReportData {
+  estimatedTime: string;
+  totalCost: number;
+  partialCosts: {
+    development: number;
+    design: number;
+    testing: number;
+    deployment: number;
+    projectManagement?: number;
+    maintenance?: number;
+  };
+  difficultyLevel: 'low' | 'medium' | 'high';
+  requiredTeamMembers: number;
+  recommendedTechnologies: string[];
+  additionalNotes: string;
+  recommendations: string[];
+  milestones: string[];
 }
 
-${isSpanish ? 'REGLAS IMPORTANTES:' : 'IMPORTANT RULES:'}
-- Responde ÚNICAMENTE con el JSON válido, sin texto adicional
-- Asegúrate de que el JSON esté completo y bien formado
-- Los costos deben ser realistas para el tipo de proyecto en USD
-- Considera la complejidad basada en los detalles proporcionados
-- La suma de partialCosts debe ser igual o cercana a totalCost
-- Adapta las tecnologías recomendadas al tipo de servicio
-- El difficultyLevel debe ser: low, medium, o high
-- requiredTeamMembers debe ser un número entre 1 y 10`;
-};
-
-// Función para llamar a la API de Gemini
-export async function callGeminiAPI(prompt: string): Promise<string> {
-  if (!GEMINI_API_KEY) {
-    console.warn('No se configuró VITE_GOOGLE_AI_API_KEY, usando respuesta simulada');
-    // Simular delay para desarrollo
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    throw new Error('API key no configurada');
-  }
-
+/**
+ * Genera un reporte AI usando Supabase Edge Function
+ * Esta función es SEGURA porque la API key está en el servidor
+ */
+export async function generateAIQuoteReport(
+  quoteRequestId: string,
+  projectDetails: string,
+  service: string,
+  language: 'es' | 'en' = 'es'
+): Promise<AIReportData & { generatedAt: string; language: string }> {
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 2048,
-        },
-      }),
+    console.log('📡 Llamando a Edge Function para generar reporte...');
+    console.log('📋 Datos:', { quoteRequestId, service, language });
+    
+    // Preparar el body como objeto (Supabase lo convertirá a JSON automáticamente)
+    const requestBody = {
+      quoteRequestId,
+      projectDetails,
+      service,
+      language,
+    };
+
+    console.log('📤 Enviando request a Edge Function...');
+    
+    // Llamar a la Edge Function de Supabase
+    // IMPORTANTE: NO usar JSON.stringify, Supabase lo hace automáticamente
+    const { data, error } = await supabase.functions.invoke('generate-report', {
+      body: requestBody,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'Error en la API de Gemini');
+    console.log('📥 Respuesta recibida:', { data, error });
+
+    if (error) {
+      console.error('❌ Error en Edge Function:', error);
+      throw error;
     }
 
-    const data = await response.json();
-    return data.candidates[0]?.content?.parts[0]?.text || '';
+    if (!data || !data.success) {
+      throw new Error(data?.error || 'Error generando reporte');
+    }
+
+    console.log('✅ Reporte generado exitosamente por Edge Function');
+    return data.aiReport;
   } catch (error) {
-    console.error('Error llamando a Gemini API:', error);
+    console.error('❌ Error generando reporte con Edge Function:', error);
+    
+    // Fallback local solo para desarrollo
+    if (import.meta.env.DEV) {
+      console.warn('⚠️ Usando fallback local (solo desarrollo)');
+      return generateLocalFallbackReport(service, language);
+    }
+    
     throw error;
   }
 }
 
-// Función para generar el reporte con Gemini
-export async function generateAIQuoteReport(
-  projectDetails: string, 
+/**
+ * Fallback local SOLO para desarrollo
+ * En producción, siempre debe usar la Edge Function
+ */
+function generateLocalFallbackReport(
   service: string, 
-  language: 'es' | 'en' = 'es'
-): Promise<{
-  estimatedTime: string;
-  totalCost: number;
-  partialCosts: {
-    development: number;
-    design: number;
-    testing: number;
-    deployment: number;
-    projectManagement?: number;
-    maintenance?: number;
-  };
-  difficultyLevel: 'low' | 'medium' | 'high';
-  requiredTeamMembers: number;
-  recommendedTechnologies: string[];
-  additionalNotes: string;
-  recommendations: string[];
-  milestones: string[];
-}> {
-  try {
-    const prompt = generateQuotePrompt(projectDetails, service, language);
-    
-    // Intentar llamar a la API
-    let text = '';
-    try {
-      text = await callGeminiAPI(prompt);
-    } catch (apiError) {
-      console.warn('API call failed, using fallback:', apiError);
-      // Fallback: generar respuesta basada en el tipo de servicio
-      return generateFallbackReport(service, language);
-    }
-
-    // Extraer JSON de la respuesta
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No se pudo extraer JSON de la respuesta de Gemini');
-    }
-
-    const report = JSON.parse(jsonMatch[0]);
-    
-    // Validar y completar campos faltantes
-    return {
-      estimatedTime: report.estimatedTime || (language === 'es' ? '4-6 semanas' : '4-6 weeks'),
-      totalCost: report.totalCost || 5000,
-      partialCosts: {
-        development: report.partialCosts?.development || Math.floor(report.totalCost * 0.5),
-        design: report.partialCosts?.design || Math.floor(report.totalCost * 0.2),
-        testing: report.partialCosts?.testing || Math.floor(report.totalCost * 0.15),
-        deployment: report.partialCosts?.deployment || Math.floor(report.totalCost * 0.15),
-        projectManagement: report.partialCosts?.projectManagement || Math.floor(report.totalCost * 0.1),
-        maintenance: report.partialCosts?.maintenance || Math.floor(report.totalCost * 0.05),
-      },
-      difficultyLevel: report.difficultyLevel || 'medium',
-      requiredTeamMembers: report.requiredTeamMembers || 3,
-      recommendedTechnologies: report.recommendedTechnologies || ['React', 'Node.js', 'MongoDB'],
-      additionalNotes: report.additionalNotes || (language === 'es' ? 'Proyecto requiere planificación cuidadosa.' : 'Project requires careful planning.'),
-      recommendations: report.recommendations || [],
-      milestones: report.milestones || [],
-    };
-  } catch (error) {
-    console.error('Error generando reporte con Gemini:', error);
-    return generateFallbackReport(service, language);
-  }
-}
-
-// Función de respaldo cuando la API no está disponible
-function generateFallbackReport(service: string, language: 'es' | 'en'): {
-  estimatedTime: string;
-  totalCost: number;
-  partialCosts: {
-    development: number;
-    design: number;
-    testing: number;
-    deployment: number;
-    projectManagement?: number;
-    maintenance?: number;
-  };
-  difficultyLevel: 'low' | 'medium' | 'high';
-  requiredTeamMembers: number;
-  recommendedTechnologies: string[];
-  additionalNotes: string;
-  recommendations: string[];
-  milestones: string[];
-} {
-  // Valores base según el tipo de servicio
-  const serviceConfigs: Record<string, { baseCost: number; time: string; difficulty: 'low' | 'medium' | 'high'; team: number; techs: string[] }> = {
+  language: 'es' | 'en'
+): AIReportData & { generatedAt: string; language: string } {
+  console.log('🔄 Generando reporte con fallback local...');
+  
+  const serviceConfigs: Record<string, { 
+    baseCost: number; 
+    time: string; 
+    difficulty: 'low' | 'medium' | 'high'; 
+    team: number; 
+    techs: string[] 
+  }> = {
     'Desarrollo Web': { 
       baseCost: 8000, 
       time: language === 'es' ? '6-8 semanas' : '6-8 weeks', 
@@ -319,7 +234,7 @@ function generateFallbackReport(service: string, language: 'es' | 'en'): {
       'Phase 4: Testing and QA',
       'Phase 5: Deployment and launch'
     ],
+    generatedAt: new Date().toISOString(),
+    language,
   };
 }
-
-export const GEMINI_MODEL = 'gemini-2.0-flash';

@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { QuoteRequest } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase-complete';
 
 // Servicio para generar PDFs de reportes AI
 export class PDFService {
