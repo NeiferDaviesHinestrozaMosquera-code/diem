@@ -41,6 +41,8 @@ export interface Testimonial {
   createdAt: Date;
 }
 
+// ACTUALIZADO: Estados correctos según constraint de base de datos
+
 export interface QuoteRequest {
   id: string;
   fullName: string;
@@ -49,10 +51,11 @@ export interface QuoteRequest {
   phone: string;
   service: string;
   projectDetails: string;
-  status: 'pending' | 'reviewed' | 'quoted' | 'approved' | 'rejected';
+  status: 'pending' | 'processing' | 'completed' | 'error' | 'archived';
   createdAt: Date;
   updatedAt: Date;
   aiReport?: AIReport;
+  pdfUrl?: string; // URL del PDF generado
 }
 
 export interface AIReport {
@@ -63,11 +66,17 @@ export interface AIReport {
     design: number;
     testing: number;
     deployment: number;
+    projectManagement?: number;
+    maintenance?: number;
   };
   difficultyLevel: 'low' | 'medium' | 'high';
   requiredTeamMembers: number;
   recommendedTechnologies: string[];
   additionalNotes: string;
+  recommendations?: string[];
+  milestones?: string[];
+  generatedAt?: string;
+  language?: 'es' | 'en';
 }
 
 export interface SiteSettings {

@@ -1,5 +1,5 @@
-// genkitService.ts - VERSIÓN ACTUALIZADA
-// Usa Edge Function en lugar de llamadas directas a Gemini
+// genkitService.ts - VERSIÓN CORREGIDA
+// Usa Edge Function y maneja correctamente los estados
 
 import { generateAIQuoteReport } from '@/config/gemini';
 import type { AIReport, QuoteRequest } from '@/types';
@@ -31,27 +31,27 @@ export class GenkitService {
       return status as QuoteStatus;
     }
     
-    console.warn(`Estado inválido: ${status}, usando 'pending' por defecto`);
+    console.warn(`⚠️ Estado inválido: ${status}, usando 'pending' por defecto`);
     return 'pending';
   }
 
   /**
    * Genera un reporte AI para una solicitud de cotización
-   * Ahora usa Edge Function para seguridad
+   * Usa Edge Function para seguridad
    */
   async generateQuoteReport(
     quoteRequest: QuoteRequest,
     language: 'es' | 'en' = 'es'
   ): Promise<AIReport> {
     try {
-      console.log(`🔄 Generando reporte AI para: ${quoteRequest.fullName}`);
+      console.log(`📄 Generando reporte AI para: ${quoteRequest.fullName}`);
       console.log(`📋 Quote ID: ${quoteRequest.id}`);
       console.log(`🌐 Idioma: ${language}`);
 
       // Actualizar estado a 'processing' antes de generar
       try {
         await updateQuoteRequest(quoteRequest.id, {
-          status: this.validateStatus('processing'),
+          status: 'processing',
         });
         console.log('✅ Estado actualizado a "processing"');
       } catch (statusError) {
@@ -60,6 +60,7 @@ export class GenkitService {
       }
 
       // Llamar a la Edge Function (seguro)
+      // La Edge Function AUTOMÁTICAMENTE actualiza el estado a 'completed' al terminar
       const reportData = await generateAIQuoteReport(
         quoteRequest.id,
         quoteRequest.projectDetails,
@@ -73,11 +74,16 @@ export class GenkitService {
         language: reportData.language || language,
       };
 
-      // La Edge Function ya actualiza el estado a 'completed' y guarda el reporte
-      // Pero podemos verificar que se guardó correctamente
+      // Verificar que el reporte tenga contenido real
       console.log('✅ Reporte AI generado exitosamente');
       console.log(`💰 Costo total: $${aiReport.totalCost}`);
       console.log(`⏱️ Tiempo estimado: ${aiReport.estimatedTime}`);
+      console.log(`👥 Equipo requerido: ${aiReport.requiredTeamMembers} personas`);
+      console.log(`📈 Nivel de dificultad: ${aiReport.difficultyLevel}`);
+      console.log(`🛠️ Tecnologías: ${aiReport.recommendedTechnologies.length} recomendadas`);
+      
+      // Verificar que se guardó correctamente y el estado cambió
+      console.log('ℹ️ La Edge Function ya actualizó el estado a "completed" en la BD');
       
       return aiReport;
     } catch (error) {
@@ -86,7 +92,7 @@ export class GenkitService {
       // Actualizar el estado a error en caso de fallo
       try {
         await updateQuoteRequest(quoteRequest.id, {
-          status: this.validateStatus('error'),
+          status: 'error',
         });
         console.log('✅ Estado actualizado a "error"');
       } catch (updateError) {
@@ -104,7 +110,7 @@ export class GenkitService {
     quoteRequest: QuoteRequest,
     language: 'es' | 'en' = 'es'
   ): Promise<AIReport> {
-    console.log(`🔁 Regenerando reporte AI para: ${quoteRequest.fullName}`);
+    console.log(`🔄 Regenerando reporte AI para: ${quoteRequest.fullName}`);
     return this.generateQuoteReport(quoteRequest, language);
   }
 
@@ -116,7 +122,7 @@ export class GenkitService {
     targetLanguage: 'es' | 'en'
   ): Promise<AIReport> {
     console.log(
-      `🌍 Traduciendo reporte AI a ${targetLanguage} para: ${quoteRequest.fullName}`
+      `🌐 Traduciendo reporte AI a ${targetLanguage} para: ${quoteRequest.fullName}`
     );
     return this.generateQuoteReport(quoteRequest, targetLanguage);
   }

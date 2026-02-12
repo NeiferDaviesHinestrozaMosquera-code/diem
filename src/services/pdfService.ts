@@ -1,7 +1,17 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import type { QuoteRequest } from '@/types';
 import { supabase } from '@/lib/supabase-complete';
+
+// Extender el tipo jsPDF para incluir autoTable
+declare module 'jspdf' {
+  interface jsPDF {
+    autoTable: typeof autoTable;
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
 
 // Servicio para generar PDFs de reportes AI
 export class PDFService {
@@ -92,7 +102,8 @@ export class PDFService {
       [isSpanish ? 'Servicio:' : 'Service:', quoteRequest.service],
     ];
 
-    (doc as any).autoTable({
+    // Usar autoTable correctamente con el nuevo import
+    autoTable(doc, {
       startY: yPos,
       margin: { left: margin, right: margin },
       body: clientInfo,
@@ -107,7 +118,7 @@ export class PDFService {
       },
     });
 
-    yPos = (doc as any).lastAutoTable.finalY + 15;
+    yPos = doc.lastAutoTable.finalY + 15;
 
     // Resumen del proyecto
     doc.setFontSize(16);
@@ -157,7 +168,7 @@ export class PDFService {
       ],
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: yPos,
       margin: { left: margin, right: margin },
       body: keyInfo,
@@ -178,7 +189,7 @@ export class PDFService {
       },
     });
 
-    yPos = (doc as any).lastAutoTable.finalY + 15;
+    yPos = doc.lastAutoTable.finalY + 15;
 
     // Desglose de costos
     if (yPos > 200) {
@@ -218,7 +229,7 @@ export class PDFService {
       `$${report.totalCost.toLocaleString()}`,
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: yPos,
       margin: { left: margin, right: margin },
       body: costData,
@@ -240,7 +251,7 @@ export class PDFService {
       },
     });
 
-    yPos = (doc as any).lastAutoTable.finalY + 15;
+    yPos = doc.lastAutoTable.finalY + 15;
 
     // Tecnologías recomendadas
     if (yPos > 200) {
