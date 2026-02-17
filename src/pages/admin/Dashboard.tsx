@@ -86,7 +86,7 @@ export function Dashboard() {
           {/* Header de bienvenida */}
           <motion.div variants={itemVariants} className="space-y-2">
             <h1 className="text-3xl font-bold text-foreground">
-              ¡Bienvenido, Administrador!
+              ¡Bienvenido, Administrador💙 💚  🤍!
             </h1>
             <p className="text-muted-foreground">
               {user?.email} • Último acceso: {new Date().toLocaleDateString('es-ES', {

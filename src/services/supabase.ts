@@ -157,18 +157,27 @@ export const addProject = async (project: Omit<Project, 'id' | 'createdAt' | 'up
 
 export const updateProject = async (id: string, project: Partial<Project>) => {
   const updateData: any = { ...project };
-  if (project.longDescription) {
+
+  // Convertir camelCase → snake_case usando !== undefined
+  // para que campos vacíos ("") también se conviertan correctamente
+  if (project.longDescription !== undefined) {
     updateData.long_description = project.longDescription;
     delete updateData.longDescription;
   }
-  if (project.projectUrl) {
+  if (project.projectUrl !== undefined) {
     updateData.project_url = project.projectUrl;
     delete updateData.projectUrl;
   }
-  if (project.completionDate) {
+  if (project.completionDate !== undefined) {
     updateData.completion_date = project.completionDate;
     delete updateData.completionDate;
   }
+
+  // Eliminar campos que NO existen como columnas en Supabase
+  delete updateData.createdAt;
+  delete updateData.updatedAt;
+  delete updateData.id; // no sobreescribir el id en el body
+
   updateData.updated_at = new Date().toISOString();
 
   const { error } = await supabase

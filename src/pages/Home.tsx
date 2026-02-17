@@ -143,7 +143,7 @@ export function Home() {
                       size="lg"
                       variant="outline"
                       onClick={() => navigate('/services')}
-                      className="border-white/50 text-white hover:bg-white/10"
+                      className="border-white/50 text-red hover:bg-white/10"
                     >
                       {t('learnMore')}
                     </Button>

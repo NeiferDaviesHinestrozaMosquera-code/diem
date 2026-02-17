@@ -240,6 +240,11 @@ const translationEN = {
   servicesTitle: 'Our Services',
   servicesSubtitle: 'We offer a comprehensive suite of digital services to elevate your business.',
   viewDetails: 'View Details',
+
+  // Services
+  projectsTitle: 'Project mantenimiento',
+  projectsSubtitle: 'Estamos trabajando para arreglar los errores de esta parte.',
+  projectsDetails: 'View Project',
   
   // About
   aboutTitle: 'About Us',

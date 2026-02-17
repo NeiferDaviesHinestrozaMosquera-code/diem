@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Eye, FileText, Clock, Sparkles,
@@ -30,9 +30,9 @@ import {
 import { toast } from 'sonner';
 import {
   updateQuoteRequest,
-  subscribeToQuoteRequests,
   getQuoteRequests,
 } from '@/services/supabase';
+import { supabase } from '@/lib/supabase-complete';
 import { integratedReportService } from '@/services/integratedReportService';
 import { pdfService } from '@/services/pdfService';
 import type { QuoteRequest } from '@/types';
@@ -48,25 +48,79 @@ export function ClientInquiries() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<'es' | 'en'>('es');
+  const [isLoading, setIsLoading] = useState(true);
   const itemsPerPage = 8;
 
+  // Usar useRef para mantener la referencia del selectedQuote sin causar re-renders
+  const selectedQuoteRef = useRef<QuoteRequest | null>(null);
+  
   useEffect(() => {
-    const unsubscribe = subscribeToQuoteRequests((data) => {
-      setQuotes(data);
-    });
-    return unsubscribe;
-  }, []);
+    selectedQuoteRef.current = selectedQuote;
+  }, [selectedQuote]);
 
-  // Refresh quotes manually
-  const refreshQuotes = async () => {
-    try {
-      const data = await getQuoteRequests();
-      setQuotes(data);
-      toast.success('Quotes refreshed');
-    } catch (error) {
-      toast.error('Failed to refresh quotes');
-    }
-  };
+  useEffect(() => {
+    let mounted = true;
+    
+    // Cargar datos iniciales
+    const loadInitialData = async () => {
+      try {
+        console.log('🔄 Cargando datos iniciales...');
+        const data = await getQuoteRequests();
+        console.log('📊 Datos recibidos:', data.length, 'quotes');
+        
+        if (mounted) {
+          setQuotes(data);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Error cargando datos:', error);
+        if (mounted) {
+          setIsLoading(false);
+          toast.error('Failed to load inquiries');
+        }
+      }
+    };
+
+    loadInitialData();
+
+    // Configurar suscripción para actualizaciones en tiempo real
+    console.log('📡 Configurando suscripción en tiempo real...');
+    const subscription = supabase
+      .channel('quote_requests_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quote_requests',
+        },
+        async (payload: any) => {
+          console.log('📡 Cambio detectado:', payload.eventType);
+          // Recargar datos cuando hay cambios
+          const data = await getQuoteRequests();
+          if (mounted) {
+            setQuotes(data);
+            
+            // Actualizar selectedQuote si está abierto
+            if (selectedQuoteRef.current) {
+              const updatedQuote = data.find(q => q.id === selectedQuoteRef.current!.id);
+              if (updatedQuote) {
+                setSelectedQuote(updatedQuote);
+              }
+            }
+          }
+        }
+      )
+      .subscribe((status: string) => {
+        console.log('📡 Estado de suscripción:', status);
+      });
+    
+    return () => {
+      mounted = false;
+      console.log('🔌 Desconectando suscripción');
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleGenerateReport = async (quote: QuoteRequest, language: 'es' | 'en' = 'es') => {
     setIsGeneratingReport(true);
@@ -83,8 +137,7 @@ export function ClientInquiries() {
 
       toast.success('AI report generated successfully!');
 
-      // Refresh the quotes to get the updated data
-      await refreshQuotes();
+      // La suscripción actualizará automáticamente los datos
 
       // Update selected quote if it's the same one
       if (selectedQuote?.id === quote.id) {
@@ -121,7 +174,7 @@ export function ClientInquiries() {
 
       toast.success('AI report regenerated successfully!');
 
-      await refreshQuotes();
+      // La suscripción actualizará automáticamente los datos
 
       if (selectedQuote?.id === quote.id) {
         const updatedQuote = {
@@ -155,7 +208,7 @@ export function ClientInquiries() {
 
       toast.success('Report translated successfully!');
 
-      await refreshQuotes();
+      // La suscripción actualizará automáticamente los datos
 
       if (selectedQuote?.id === quote.id) {
         const updatedQuote = {
@@ -222,7 +275,7 @@ export function ClientInquiries() {
       toast.success('Quote deleted successfully');
       setShowDeleteDialog(false);
       setQuoteToDelete(null);
-      await refreshQuotes();
+      // La suscripción actualizará automáticamente los datos
     } catch (error) {
       console.error('Error deleting quote:', error);
       toast.error('Failed to delete quote');
@@ -271,10 +324,6 @@ export function ClientInquiries() {
           <h1 className="text-3xl font-bold">Client Inquiries</h1>
           <p className="text-muted-foreground">Manage quote requests and generate AI reports</p>
         </div>
-        <Button onClick={refreshQuotes} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
       </div>
 
       {/* Filters */}
@@ -303,7 +352,16 @@ export function ClientInquiries() {
         </Select>
       </div>
 
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+          <span className="ml-3 text-muted-foreground">Loading inquiries...</span>
+        </div>
+      )}
+
       {/* Stats Cards */}
+      {!isLoading && (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Requests', value: quotes.length, icon: FileText, color: 'bg-blue-500' },
@@ -331,8 +389,10 @@ export function ClientInquiries() {
           </motion.div>
         ))}
       </div>
+      )}
 
       {/* Quotes Table */}
+      {!isLoading && (
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
@@ -479,6 +539,7 @@ export function ClientInquiries() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Quote Details Dialog */}
       <Dialog open={!!selectedQuote} onOpenChange={() => setSelectedQuote(null)}>

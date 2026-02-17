@@ -16,15 +16,230 @@ import {
 } from '@/services/supabase';
 import type { Project } from '@/types';
 
-const technologies = [
-  'react', 'nextjs', 'nodejs', 'python', 'typescript', 'tailwind',
-  'firebase', 'mongodb', 'aws', 'docker', 'figma', 'graphql',
-];
+
+const techCategories: Record<string, { label: string; techs: string[] }> = {
+  frontend: {
+    label: '🖥️ Frontend',
+    techs: [
+      'react', 'nextjs', 'vuejs', 'nuxtjs', 'angular', 'svelte', 'sveltekit',
+      'astro', 'remix', 'gatsby', 'typescript', 'javascript', 'html', 'css',
+      'tailwind', 'sass', 'styled-components', 'shadcn', 'radix-ui',
+      'framer-motion', 'redux', 'zustand', 'vite', 'webpack', 'storybook',
+    ],
+  },
+  backend: {
+    label: '⚙️ Backend',
+    techs: [
+      'nodejs', 'express', 'nestjs', 'fastapi', 'django', 'flask',
+      'laravel', 'symfony', 'spring', 'ruby-on-rails', 'go', 'rust',
+      'java', 'kotlin', 'csharp', 'dotnet', 'php', 'elixir', 'haskell',
+      'graphql', 'rest-api', 'grpc', 'websockets', 'trpc',
+    ],
+  },
+  databases: {
+    label: '🗄️ Databases',
+    techs: [
+      'mongodb', 'postgresql', 'mysql', 'sqlite', 'redis', 'supabase',
+      'firebase', 'dynamodb', 'cassandra', 'elasticsearch', 'neo4j',
+      'prisma', 'drizzle', 'planetscale', 'neon', 'turso',
+    ],
+  },
+  cloud: {
+    label: '☁️ Cloud & DevOps',
+    techs: [
+      'aws', 'gcp', 'azure', 'vercel', 'netlify', 'heroku', 'railway',
+      'docker', 'kubernetes', 'terraform', 'github-actions', 'gitlab-ci',
+      'circleci', 'nginx', 'linux', 'cloudflare',
+    ],
+  },
+  mobile: {
+    label: '📱 Mobile',
+    techs: [
+      'react-native', 'flutter', 'swift', 'swiftui', 'kotlin-android',
+      'expo', 'ionic', 'capacitor', 'xamarin',
+    ],
+  },
+  testing: {
+    label: '🧪 Testing',
+    techs: [
+      'jest', 'vitest', 'cypress', 'playwright', 'testing-library',
+      'storybook', 'k6', 'selenium',
+    ],
+  },
+  design: {
+    label: '🎨 Design & Collaboration',
+    techs: [
+      'figma', 'adobe-xd', 'sketch', 'photoshop', 'illustrator',
+      'blender', 'framer', 'miro', 'notion', 'jira', 'linear',
+    ],
+  },
+  ai: {
+    label: '🤖 AI & Data',
+    techs: [
+      'python', 'openai', 'langchain', 'huggingface', 'tensorflow',
+      'pytorch', 'pandas', 'numpy', 'scikit-learn', 'jupyter',
+      'spark', 'airflow', 'dbt', 'snowflake',
+    ],
+  },
+  tools: {
+    label: '🔧 Tools & Others',
+    techs: [
+      'git', 'github', 'gitlab', 'bitbucket', 'stripe', 'twilio',
+      'sendgrid', 'pusher', 'socket-io', 'oauth', 'jwt',
+      'webrtc', 'pwa', 'electron', 'tauri',
+    ],
+  },
+};
+
+const technologies = Object.values(techCategories).flatMap(c => c.techs);
 
 const techIcons: Record<string, string> = {
-  react: '⚛️', nextjs: '▲', nodejs: '🟢', python: '🐍', typescript: '📘',
-  tailwind: '🌊', firebase: '🔥', mongodb: '🍃', aws: '☁️', docker: '🐳',
-  figma: '🎨', graphql: '🚀',
+  // ─── Frontend ────────────────────────────────────────────────────────────
+  react:             '⚛️',
+  nextjs:            '▲',
+  vuejs:             '💚',
+  nuxtjs:            '🟩',
+  angular:           '🔴',
+  svelte:            '🔶',
+  sveltekit:         '🔷',
+  astro:             '🚀',
+  remix:             '💿',
+  gatsby:            '🟣',
+  typescript:        '📘',
+  javascript:        '💛',
+  html:              '🌐',
+  css:               '🎨',
+  tailwind:          '🌊',
+  sass:              '💅',
+  'styled-components':'💄',
+  shadcn:            '🫧',
+  'radix-ui':        '⚪',
+  'framer-motion':   '🎬',
+  redux:             '🔄',
+  zustand:           '🐻',
+  vite:              '⚡',
+  webpack:           '📦',
+  storybook:         '📖',
+  // ─── Backend ─────────────────────────────────────────────────────────────
+  nodejs:            '🟢',
+  express:           '🚂',
+  nestjs:            '🐱',
+  fastapi:           '🏎️',
+  django:            '🎸',
+  flask:             '🧪',
+  laravel:           '🔴',
+  symfony:           '⬛',
+  spring:            '☕',
+  'ruby-on-rails':   '💎',
+  go:                '🐹',
+  rust:              '🦀',
+  java:              '☕',
+  kotlin:            '🟠',
+  csharp:            '🔷',
+  dotnet:            '🔵',
+  php:               '🐘',
+  elixir:            '💜',
+  haskell:           '🟣',
+  graphql:           '◈',
+  'rest-api':        '🔗',
+  grpc:              '🔌',
+  websockets:        '🔁',
+  trpc:              '🛤️',
+  // ─── Databases ───────────────────────────────────────────────────────────
+  mongodb:           '🍃',
+  postgresql:        '🐘',
+  mysql:             '🐬',
+  sqlite:            '🪶',
+  redis:             '🟥',
+  supabase:          '⚡',
+  firebase:          '🔥',
+  dynamodb:          '🔶',
+  cassandra:         '👁️',
+  elasticsearch:     '🔍',
+  neo4j:             '🕸️',
+  prisma:            '📐',
+  drizzle:           '💧',
+  planetscale:       '🪐',
+  neon:              '✨',
+  turso:             '🦅',
+  // ─── Cloud & DevOps ──────────────────────────────────────────────────────
+  aws:               '☁️',
+  gcp:               '🌥️',
+  azure:             '🔵',
+  vercel:            '△',
+  netlify:           '🌐',
+  heroku:            '💜',
+  railway:           '🚆',
+  docker:            '🐳',
+  kubernetes:        '⚙️',
+  terraform:         '🏗️',
+  'github-actions':  '🤖',
+  'gitlab-ci':       '🔶',
+  circleci:          '⭕',
+  nginx:             '🌿',
+  linux:             '🐧',
+  cloudflare:        '🟠',
+  // ─── Mobile ──────────────────────────────────────────────────────────────
+  'react-native':    '📱',
+  flutter:           '💙',
+  swift:             '🦅',
+  swiftui:           '🍎',
+  'kotlin-android':  '🤖',
+  expo:              '📲',
+  ionic:             '⚡',
+  capacitor:         '🔋',
+  xamarin:           '🟣',
+  // ─── Testing ─────────────────────────────────────────────────────────────
+  jest:              '🃏',
+  vitest:            '⚡',
+  cypress:           '🌲',
+  playwright:        '🎭',
+  'testing-library': '🧪',
+  k6:                '📊',
+  selenium:          '🤖',
+  // ─── Design & Collaboration ───────────────────────────────────────────────
+  figma:             '🎨',
+  'adobe-xd':        '🟪',
+  sketch:            '💎',
+  photoshop:         '🖼️',
+  illustrator:       '🖊️',
+  blender:           '🍊',
+  framer:            '🖌️',
+  miro:              '🟡',
+  notion:            '⬛',
+  jira:              '🔵',
+  linear:            '🟣',
+  // ─── AI & Data ───────────────────────────────────────────────────────────
+  python:            '🐍',
+  openai:            '🤖',
+  langchain:         '🔗',
+  huggingface:       '🤗',
+  tensorflow:        '🔬',
+  pytorch:           '🔥',
+  pandas:            '🐼',
+  numpy:             '🔢',
+  'scikit-learn':    '🧠',
+  jupyter:           '📓',
+  spark:             '✨',
+  airflow:           '🌬️',
+  dbt:               '🏗️',
+  snowflake:         '❄️',
+  // ─── Tools & Others ──────────────────────────────────────────────────────
+  git:               '🌿',
+  github:            '🐙',
+  gitlab:            '🦊',
+  bitbucket:         '🪣',
+  stripe:            '💳',
+  twilio:            '🟥',
+  sendgrid:          '📧',
+  pusher:            '📡',
+  'socket-io':       '🔁',
+  oauth:             '🔐',
+  jwt:               '🪙',
+  webrtc:            '📹',
+  pwa:               '📲',
+  electron:          '⚡',
+  tauri:             '🦀',
 };
 
 export function ProjectsAdmin() {
@@ -506,27 +721,39 @@ export function ProjectsAdmin() {
 
             <div>
               <Label>Technologies *</Label>
-              <div className="max-h-48 overflow-y-auto border rounded-lg p-3 mt-2">
-                <div className="flex flex-wrap gap-2">
-                  {technologies.map((tech) => (
-                    <button
-                      key={tech}
-                      type="button"
-                      onClick={() => toggleTechnology(tech)}
-                      className={`px-3 py-2 rounded-lg border transition-colors ${
-                        formData.technologies.includes(tech)
-                          ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <span className="mr-1">{techIcons[tech] || '🛠️'}</span>
-                      {tech}
-                    </button>
-                  ))}
-                </div>
+              <div className="max-h-72 overflow-y-auto border rounded-lg p-3 mt-2 space-y-4">
+                {Object.entries(techCategories).map(([key, category]) => (
+                  <div key={key}>
+                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                      {category.label}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {category.techs.map((tech) => (
+                        <button
+                          key={tech}
+                          type="button"
+                          onClick={() => toggleTechnology(tech)}
+                          className={`px-3 py-1.5 rounded-lg border text-xs transition-all ${
+                            formData.technologies.includes(tech)
+                              ? 'border-primary bg-primary/10 ring-2 ring-primary/20 font-medium'
+                              : 'border-border hover:border-primary/50 hover:bg-muted'
+                          }`}
+                        >
+                          <span className="mr-1">{techIcons[tech] || '🛠️'}</span>
+                          {tech}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {formData.technologies.length} selected
+                {formData.technologies.length > 0 && (
+                  <span className="ml-2">
+                    → {formData.technologies.map(t => techIcons[t] || '🛠️').join(' ')}
+                  </span>
+                )}
               </p>
             </div>
 

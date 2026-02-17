@@ -59,6 +59,7 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
     "react-i18next": "^16.5.4",
+    "react-icons": "^5.5.0",
     "react-resizable-panels": "^4.2.2",
     "react-router-dom": "^7.12.0",
     "recharts": "^2.15.4",

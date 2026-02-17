@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Stars
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,7 +18,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 
 const navItems = [
-  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/admin', label: 'Dashboard', icon: Stars },
   { path: '/admin/services', label: 'Servicios', icon: Briefcase },
   { path: '/admin/projects', label: 'Proyectos', icon: FolderOpen },
   { path: '/admin/testimonials', label: 'Testimonios', icon: MessageSquare },
@@ -62,7 +63,7 @@ export function AdminHeader() {
             <div className="hidden md:flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm font-medium">{user?.email}</p>
-                <p className="text-xs text-white/70">Administrador</p>
+                <p className="text-xs text-white/70">Administrador </p>
               </div>
               <Button
                 variant="ghost"
