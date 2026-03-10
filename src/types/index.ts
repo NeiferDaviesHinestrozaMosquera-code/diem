@@ -41,6 +41,29 @@ export interface Testimonial {
   createdAt: Date;
 }
 
+// ═══════════════════════════════════════════════════════════════
+// TEAM MEMBER
+// ═══════════════════════════════════════════════════════════════
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  twitterUrl?: string;
+  order: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// QUOTE REQUEST - 5 ESTADOS
+// ═══════════════════════════════════════════════════════════════
+
 export interface QuoteRequest {
   id: string;
   fullName: string;
@@ -49,11 +72,19 @@ export interface QuoteRequest {
   phone: string;
   service: string;
   projectDetails: string;
-   status: 'pending' | 'processing' | 'completed' | 'error' | 'archived';
+  status: 'pending' | 'processing' | 'completed' | 'error' | 'archived';
   createdAt: Date;
   updatedAt: Date;
   aiReport?: AIReport;
   pdfUrl?: string;
+}
+
+export enum QuoteStatus {
+  PENDING    = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED  = 'completed',
+  ERROR      = 'error',
+  ARCHIVED   = 'archived',
 }
 
 export interface AIReport {
@@ -71,11 +102,15 @@ export interface AIReport {
   requiredTeamMembers: number;
   recommendedTechnologies: string[];
   additionalNotes: string;
-  recommendations?: string[];
+  recommendations?: string[]
   milestones?: string[];
   generatedAt?: string;
-  language: 'es' | 'en';
+  language?: 'es' | 'en';
 }
+
+// ═══════════════════════════════════════════════════════════════
+// SITE SETTINGS
+// ═══════════════════════════════════════════════════════════════
 
 export interface SiteSettings {
   id: string;
@@ -119,5 +154,68 @@ export interface SiteSettings {
   googleAnalyticsId: string;
   customScripts: string;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// PRIVACY POLICY
+// ═══════════════════════════════════════════════════════════════
+
+export interface PrivacyItem {
+  label?: string;
+  desc:   string;
+  icon?:  string;
+}
+
+export interface PrivacySection {
+  id:          string;
+  title:       string;
+  icon_name:   string;
+  color:       string;
+  body_text:   string;
+  items:       PrivacyItem[];
+  order_index: number;
+  active:      boolean;
+  created_at:  string;
+  updated_at:  string;
+}
+
+export interface PrivacyMeta {
+  id:            string;
+  last_updated:  string;
+  page_title:    string;
+  page_subtitle: string;
+  contact_email: string;
+  updated_at:    string;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface TermsItem {
+  label?: string;
+  desc:   string;
+}
+
+export interface TermsSection {
+  id:          string;
+  title:       string;
+  icon_name:   string;
+  color:       string;
+  body_text:   string;
+  items:       TermsItem[];
+  order_index: number;
+  active:      boolean;
+  created_at:  string;
+  updated_at:  string;
+}
+
+export interface TermsMeta {
+  id:            string;
+  page_title:    string;
+  page_subtitle: string;
+  last_updated:  string;
+  contact_email: string;
+  updated_at:    string;
+}
+
+export type NewTermsSection = Omit<TermsSection, 'id' | 'created_at' | 'updated_at'>;
 
 export type Theme = 'light' | 'dark' | 'system';

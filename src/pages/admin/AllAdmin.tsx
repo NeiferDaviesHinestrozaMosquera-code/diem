@@ -1,0 +1,10 @@
+export { Login } from './Login';
+export { Dashboard } from './Dashboard';
+export { ServicesAdmin } from './ServicesAdmin';
+export { ProjectsAdmin } from './ProjectsAdmin';
+export { TestimonialsAdmin } from './TestimonialsAdmin';
+export { ClientInquiries } from './ClientInquiries';
+export { SiteSettings } from './SiteSettings';
+export { PrivacyPolicyAdmin } from './PrivacyPolicyAdmin';
+export { TeamAdmin } from './Team';
+export { TermsAdmin } from './TermsAdmin';

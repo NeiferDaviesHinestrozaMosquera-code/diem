@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import {
   getServices, addService, updateService, deleteService,
   uploadImage, deleteImage
-} from '@/services/supabase';
+} from '@/services/index';
 import type { Service } from '@/types';
 
 export function ServicesAdmin() {

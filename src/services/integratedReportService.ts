@@ -1,6 +1,6 @@
 import type { QuoteRequest, AIReport } from '@/types';
 import { generateAIQuoteReport } from '@/config/gemini';
-import { updateQuoteRequest, getQuoteRequests } from '@/lib/supabase-complete';
+import { updateQuoteRequest, getQuoteRequests } from '@/services/QuoteRequests';
 import { pdfService } from './pdfService';
 
 // 🎯 Estados válidos según Supabase

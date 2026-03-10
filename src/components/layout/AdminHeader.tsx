@@ -12,7 +12,9 @@ import {
   X,
   Stars,
   ChevronRight,
-  StarHalf
+  StarHalf,
+  PersonStanding,
+  LucideMessageCircleWarning
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,12 +23,14 @@ import { useState } from 'react';
 
 const navItems = [
   { path: '/admin', label: 'Dashboard', icon: Stars },
-  { path: '/admin/services', label: 'Servicios', icon: Briefcase },
-  { path: '/admin/projects', label: 'Proyectos', icon: FolderOpen },
-  { path: '/admin/testimonials', label: 'Testimonios', icon: MessageSquare },
-  { path: '/admin/inquiries', label: 'Consultas', icon: Users },
-  { path: '/admin/settings', label: 'Configuración', icon: Settings },
-  { path: '/admin/privacy', label: 'PrivacyPolicy', icon: StarHalf },
+  { path: '/admin/services', label: 'Services', icon: Briefcase },
+  { path: '/admin/projects', label: 'Projects', icon: FolderOpen },
+  { path: '/admin/team', label: 'Team Member', icon: PersonStanding },
+  { path: '/admin/testimonials', label: 'Testimonials', icon: MessageSquare },
+  { path: '/admin/inquiries', label: 'Clients Inquiries', icon: Users },
+  { path: '/admin/settings', label: 'Settings', icon: Settings },
+  { path: '/admin/privacy', label: 'Privacy Policy', icon: StarHalf },
+  { path: '/admin/terms', label: 'Terms of Services', icon: LucideMessageCircleWarning },
 ];
 
 // Variantes de animación para el header

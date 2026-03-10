@@ -1,136 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ExternalLink, ChevronLeft, ChevronRight,
-  Calendar, User, Folder, Code2
+  Calendar, User, Folder, Code2, Loader2, AlertCircle
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
-
-const technologies = {
-  react: { name: 'React', icon: '⚛️' },
-  nextjs: { name: 'Next.js', icon: '▲' },
-  nodejs: { name: 'Node.js', icon: '🟢' },
-  python: { name: 'Python', icon: '🐍' },
-  typescript: { name: 'TypeScript', icon: '📘' },
-  tailwind: { name: 'Tailwind', icon: '🌊' },
-  firebase: { name: 'Firebase', icon: '🔥' },
-  mongodb: { name: 'MongoDB', icon: '🍃' },
-  aws: { name: 'AWS', icon: '☁️' },
-  docker: { name: 'Docker', icon: '🐳' },
-  figma: { name: 'Figma', icon: '🎨' },
-  graphql: { name: 'GraphQL', icon: '🚀' },
-};
-
-const projects = [
-  {
-    id: '1',
-    title: 'E-Commerce Platform',
-    description: 'A full-featured online shopping platform with advanced features.',
-    longDescription: 'Built a comprehensive e-commerce platform for a major retail client. The solution includes advanced product filtering, real-time inventory management, secure payment processing, and a seamless checkout experience. The platform handles thousands of concurrent users and processes hundreds of orders daily.',
-    client: 'TechStyle Retail',
-    category: 'E-Commerce',
-    technologies: ['react', 'nodejs', 'mongodb', 'aws'],
-    images: [
-      'https://images.unsplash.com/photo-1661956602116-aa6865609028?w=800&q=80',
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
-    ],
-    projectUrl: 'https://example-ecommerce.com',
-    completionDate: '2024-01-15',
-  },
-  {
-    id: '2',
-    title: 'AI Customer Support Bot',
-    description: 'Intelligent chatbot for automated customer service.',
-    longDescription: 'Developed an AI-powered customer support bot that handles 80% of customer inquiries automatically. The bot uses natural language processing to understand customer needs and provides accurate responses. Integration with existing CRM systems ensures seamless handoff to human agents when needed.',
-    client: 'ServicePro Inc',
-    category: 'AI Solutions',
-    technologies: ['python', 'nodejs', 'firebase', 'docker'],
-    images: [
-      'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80',
-      'https://images.unsplash.com/photo-1531746790731-6c087fecd65a?w=800&q=80',
-    ],
-    projectUrl: 'https://example-chatbot.com',
-    completionDate: '2024-02-20',
-  },
-  {
-    id: '3',
-    title: 'Portfolio Website',
-    description: 'Elegant portfolio site for a creative agency.',
-    longDescription: 'Designed and developed a stunning portfolio website for a creative agency. The site features smooth animations, a custom CMS for easy content management, and optimized performance for fast loading times. The design showcases the agency\'s work while providing an exceptional user experience.',
-    client: 'Creative Studios',
-    category: 'Web Development',
-    technologies: ['nextjs', 'typescript', 'tailwind', 'figma'],
-    images: [
-      'https://images.unsplash.com/photo-1551434678-e076c223a692?w=800&q=80',
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-    ],
-    projectUrl: 'https://example-portfolio.com',
-    completionDate: '2024-03-10',
-  },
-  {
-    id: '4',
-    title: 'Social Media Dashboard',
-    description: 'Analytics dashboard for social media management.',
-    longDescription: 'Built a comprehensive social media analytics dashboard that allows businesses to track performance across multiple platforms. Features include real-time analytics, automated reporting, content scheduling, and team collaboration tools.',
-    client: 'SocialBuzz Marketing',
-    category: 'Web Application',
-    technologies: ['react', 'nodejs', 'mongodb', 'graphql'],
-    images: [
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80',
-      'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&q=80',
-    ],
-    projectUrl: 'https://example-dashboard.com',
-    completionDate: '2024-04-05',
-  },
-  {
-    id: '5',
-    title: 'Healthcare App',
-    description: 'Mobile app for patient management and telemedicine.',
-    longDescription: 'Developed a HIPAA-compliant mobile application for a healthcare provider. The app enables patients to schedule appointments, access medical records, and conduct video consultations with healthcare providers. Features secure messaging and prescription management.',
-    client: 'MedCare Health',
-    category: 'Mobile Development',
-    technologies: ['react', 'nodejs', 'aws', 'docker'],
-    images: [
-      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80',
-      'https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=800&q=80',
-    ],
-    projectUrl: null,
-    completionDate: '2024-05-12',
-  },
-  {
-    id: '6',
-    title: 'Restaurant Ordering System',
-    description: 'Online ordering platform for food delivery.',
-    longDescription: 'Created a complete online ordering system for a restaurant chain. The platform includes menu management, order tracking, payment processing, and integration with delivery services. Mobile-responsive design ensures a great experience across all devices.',
-    client: 'FoodExpress Chain',
-    category: 'E-Commerce',
-    technologies: ['nextjs', 'typescript', 'firebase', 'tailwind'],
-    images: [
-      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
-      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80',
-    ],
-    projectUrl: 'https://example-restaurant.com',
-    completionDate: '2024-06-01',
-  },
-];
+import { getProjects, subscribeToProjects } from '@/services/index';
+import type { Project } from '@/types';
 
 export function Projects() {
-  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { t } = useTranslation();
 
-  const openProject = (project: typeof projects[0]) => {
+  useEffect(() => {
+    // Carga inicial
+    getProjects()
+      .then((data) => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError('No se pudieron cargar los proyectos.');
+        setLoading(false);
+      });
+
+    // Suscripción en tiempo real
+    const unsubscribe = subscribeToProjects((updated) => {
+      setProjects(updated);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const openProject = (project: Project) => {
     setSelectedProject(project);
     setCurrentImageIndex(0);
   };
 
   const nextImage = () => {
     if (selectedProject) {
-      setCurrentImageIndex((prev) =>
-        (prev + 1) % selectedProject.images.length
-      );
+      setCurrentImageIndex((prev) => (prev + 1) % selectedProject.images.length);
     }
   };
 
@@ -176,92 +91,117 @@ export function Projects() {
       </section>
 
       {/* Projects Grid */}
-      <section className="py-10 pb-20">
+      <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project, index) => (
-              <motion.div
-                key={project.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
-                onClick={() => openProject(project)}
-              >
-                {/* Image */}
-                <div className="relative h-56 overflow-hidden">
-                  <motion.img
-                    src={project.images[0]}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-                  
-                  {/* Category Badge */}
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    whileHover={{ opacity: 1, y: 0 }}
-                    className="absolute top-4 left-4 px-3 py-1 rounded-full bg-primary/90 text-primary-foreground text-xs font-medium"
-                  >
-                    {project.category}
-                  </motion.div>
-                </div>
 
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    {project.description}
-                  </p>
+          {/* Loading */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-muted-foreground">
+              <Loader2 className="w-10 h-10 animate-spin text-primary" />
+              <p>{t('loading', 'Cargando proyectos...')}</p>
+            </div>
+          )}
 
-                  {/* Tech Stack Preview */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.technologies.slice(0, 3).map((tech) => (
-                      <motion.span
-                        key={tech}
-                        whileHover={{ scale: 1.1 }}
-                        className="px-2 py-1 rounded-md bg-muted text-xs font-medium"
-                      >
-                        {technologies[tech as keyof typeof technologies]?.name || tech}
-                      </motion.span>
-                    ))}
-                    {project.technologies.length > 3 && (
-                      <span className="px-2 py-1 rounded-md bg-muted text-xs font-medium">
-                        +{project.technologies.length - 3}
-                      </span>
-                    )}
-                  </div>
+          {/* Error */}
+          {!loading && error && (
+            <div className="flex flex-col items-center justify-center py-24 gap-3 text-destructive">
+              <AlertCircle className="w-10 h-10" />
+              <p>{error}</p>
+            </div>
+          )}
 
-                  {/* Client */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <User className="w-4 h-4" />
-                      <span>{project.client}</span>
-                    </div>
-                    <motion.span
-                      whileHover={{ x: 5 }}
-                      className="flex items-center text-primary font-medium"
-                    >
-                      View Details
-                      <ExternalLink className="w-4 h-4 ml-1" />
-                    </motion.span>
-                  </div>
-                </div>
+          {/* Empty state */}
+          {!loading && !error && projects.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted-foreground">
+              <Folder className="w-10 h-10" />
+              <p>{t('noProjects', 'No hay proyectos disponibles aún.')}</p>
+            </div>
+          )}
 
-                {/* Hover Effect */}
+          {/* Grid */}
+          {!loading && !error && projects.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project, index) => (
                 <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-blue-600"
-                  initial={{ scaleX: 0 }}
-                  whileHover={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.div>
-            ))}
-          </div>
+                  key={project.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  onClick={() => openProject(project)}
+                  className="relative bg-card border border-border rounded-xl overflow-hidden cursor-pointer group"
+                >
+                  {/* Image */}
+                  <div className="relative h-48 overflow-hidden">
+                    {project.images?.[0] ? (
+                      <img
+                        src={project.images[0]}
+                        alt={project.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <Folder className="w-12 h-12 text-muted-foreground/40" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <span className="absolute bottom-3 left-3 px-2 py-1 rounded-md bg-primary/90 text-primary-foreground text-xs font-medium">
+                      {project.category}
+                    </span>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 space-y-3">
+                    <h3 className="font-bold text-lg leading-tight">{project.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+
+                    {/* Technologies */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.technologies.slice(0, 3).map((tech) => (
+                        <motion.span
+                          key={tech.name}
+                          whileHover={{ scale: 1.05 }}
+                          className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium"
+                        >
+                          {tech.icon && <span>{tech.icon}</span>}
+                          {tech.name}
+                        </motion.span>
+                      ))}
+                      {project.technologies.length > 3 && (
+                        <span className="px-2 py-1 rounded-md bg-muted text-xs font-medium">
+                          +{project.technologies.length - 3}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Client */}
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <User className="w-4 h-4" />
+                        <span>{project.client}</span>
+                      </div>
+                      <motion.span
+                        whileHover={{ x: 5 }}
+                        className="flex items-center text-primary font-medium"
+                      >
+                        View Details
+                        <ExternalLink className="w-4 h-4 ml-1" />
+                      </motion.span>
+                    </div>
+                  </div>
+
+                  {/* Hover Effect */}
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-blue-600"
+                    initial={{ scaleX: 0 }}
+                    whileHover={{ scaleX: 1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -277,18 +217,24 @@ export function Projects() {
               {/* Image Carousel */}
               <div className="relative mt-4 mb-6">
                 <div className="relative h-64 md:h-80 rounded-xl overflow-hidden">
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentImageIndex}
-                      src={selectedProject.images[currentImageIndex]}
-                      alt={`${selectedProject.title} - ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover"
-                      initial={{ opacity: 0, x: 100 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -100 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </AnimatePresence>
+                  {selectedProject.images?.[currentImageIndex] ? (
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={currentImageIndex}
+                        src={selectedProject.images[currentImageIndex]}
+                        alt={`${selectedProject.title} - ${currentImageIndex + 1}`}
+                        className="w-full h-full object-cover"
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </AnimatePresence>
+                  ) : (
+                    <div className="w-full h-full bg-muted flex items-center justify-center">
+                      <Folder className="w-16 h-16 text-muted-foreground/30" />
+                    </div>
+                  )}
 
                   {/* Navigation */}
                   {selectedProject.images.length > 1 && (
@@ -316,8 +262,8 @@ export function Projects() {
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentImageIndex ? 'bg-primary w-6' : 'bg-muted-foreground/30'
+                        className={`h-2 rounded-full transition-all ${
+                          index === currentImageIndex ? 'bg-primary w-6' : 'bg-muted-foreground/30 w-2'
                         }`}
                       />
                     ))}
@@ -334,21 +280,21 @@ export function Projects() {
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <User className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="text-sm text-muted-foreground">{t('client')}</div>
+                      <div className="text-sm text-muted-foreground">{t('Client')}</div>
                       <div className="font-medium">{selectedProject.client}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <Folder className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="text-sm text-muted-foreground">{t('category')}</div>
+                      <div className="text-sm text-muted-foreground">{t('Category')}</div>
                       <div className="font-medium">{selectedProject.category}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
                     <Calendar className="w-5 h-5 text-primary" />
                     <div>
-                      <div className="text-sm text-muted-foreground">{t('projectDate')}</div>
+                      <div className="text-sm text-muted-foreground">{t('Project Date')}</div>
                       <div className="font-medium">
                         {new Date(selectedProject.completionDate).toLocaleDateString()}
                       </div>
@@ -373,28 +319,26 @@ export function Projects() {
                 </div>
 
                 {/* Technologies */}
-                <div>
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Code2 className="w-5 h-5 text-primary" />
-                    {t('technologies')}
-                  </h4>
-                  <div className="flex flex-wrap gap-3">
-                    {selectedProject.technologies.map((tech) => (
-                      <motion.div
-                        key={tech}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20"
-                      >
-                        <span className="text-xl">
-                          {technologies[tech as keyof typeof technologies]?.icon}
-                        </span>
-                        <span className="font-medium text-sm">
-                          {technologies[tech as keyof typeof technologies]?.name || tech}
-                        </span>
-                      </motion.div>
-                    ))}
+                {selectedProject.technologies.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <Code2 className="w-5 h-5 text-primary" />
+                      {t('technologies')}
+                    </h4>
+                    <div className="flex flex-wrap gap-3">
+                      {selectedProject.technologies.map((tech) => (
+                        <motion.div
+                          key={tech.name}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20"
+                        >
+                          {tech.icon && <span className="text-xl">{tech.icon}</span>}
+                          <span className="font-medium text-sm">{tech.name}</span>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </>
           )}

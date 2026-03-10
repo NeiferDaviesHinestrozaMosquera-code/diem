@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import {
   getProjects, addProject, updateProject, deleteProject,
   uploadImage, deleteImage
-} from '@/services/supabase';
+} from '@/services/index';
 import type { Project } from '@/types';
 
 

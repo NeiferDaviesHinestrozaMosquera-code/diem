@@ -32,8 +32,8 @@ import { toast } from 'sonner';
 import {
   updateQuoteRequest,
   getQuoteRequests,
-} from '@/services/supabase';
-import { supabase } from '@/lib/supabase-complete';
+} from '@/services/index';
+import { supabase } from '@/lib/Client';
 import { integratedReportService } from '@/services/integratedReportService';
 import { pdfService } from '@/services/pdfService';
 import type { QuoteRequest } from '@/types';

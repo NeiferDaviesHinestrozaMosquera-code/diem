@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { QuoteRequest } from '@/types';
-import { supabase } from '@/lib/supabase-complete';
+import { supabase } from '@/lib/Client';
 
 // Extender el tipo jsPDF para incluir autoTable
 declare module 'jspdf' {

@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import {
   getTestimonials, addTestimonial, updateTestimonial, deleteTestimonial,
   uploadImage, deleteImage
-} from '@/services/supabase';
+} from '@/services/index';
 import type { Testimonial } from '@/types';
 
 export function TestimonialsAdmin() {
@@ -398,6 +398,11 @@ export function TestimonialsAdmin() {
             <DialogTitle>
               {editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}
             </DialogTitle>
+            <DialogDescription>
+              {editingTestimonial
+                ? 'Update the details of the existing testimonial.'
+                : 'Fill in the fields below to add a new client testimonial.'}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div>

@@ -24,7 +24,7 @@ import {
   subscribeToProjects,
   subscribeToTestimonials,
   subscribeToQuoteRequests,
-} from '@/services/supabase';
+} from '@/services/index';
 
 const containerVariants = {
   hidden: { opacity: 0 },

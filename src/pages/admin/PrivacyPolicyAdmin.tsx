@@ -18,8 +18,8 @@ import {
   getPrivacyMeta,
   updatePrivacyMeta,
   subscribeToPrivacySections,
-} from '@/services/supabase-privacy';
-import type { PrivacySection, PrivacyMeta, NewPrivacySection, PrivacyItem } from '@/services/supabase-privacy';
+} from '@/services/Privacy';
+import type { PrivacySection, PrivacyMeta, NewPrivacySection, PrivacyItem } from '@/services/Privacy';
 import { toast } from 'sonner';
 
 // ── Icon options available ────────────────────────────────────────────────────
@@ -456,7 +456,7 @@ export function PrivacyPolicyAdmin() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-10xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">

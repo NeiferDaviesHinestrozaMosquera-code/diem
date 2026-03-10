@@ -1,3 +1,5 @@
+
+
 export interface Service {
   id: string;
   title: string;
@@ -42,6 +44,25 @@ export interface Testimonial {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// TEAM MEMBER
+// ═══════════════════════════════════════════════════════════════
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+  linkedinUrl?: string;
+  githubUrl?: string;
+  twitterUrl?: string;
+  order: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // QUOTE REQUEST - 5 ESTADOS
 // ═══════════════════════════════════════════════════════════════
 
@@ -57,10 +78,9 @@ export interface QuoteRequest {
   createdAt: Date;
   updatedAt: Date;
   aiReport?: AIReport;
-  pdfUrl?: string; // URL del PDF generado
+  pdfUrl?: string;
 }
 
-// Enum opcional para mayor type-safety
 export enum QuoteStatus {
   PENDING = 'pending',
   PROCESSING = 'processing',
@@ -134,3 +154,16 @@ export interface SiteSettings {
 }
 
 export type Theme = 'light' | 'dark' | 'system';
+
+// src/services/supabase/index.ts
+// Punto de entrada único para todos los servicios de Supabase
+
+export * from './Projects';
+export * from './QuoteRequests';
+export * from './Services';
+export * from './Settings';
+export * from './Storage';
+export * from './testimonials';
+export * from './Privacy';
+export * from './TeamMember';
+export * from './TermsofServices'

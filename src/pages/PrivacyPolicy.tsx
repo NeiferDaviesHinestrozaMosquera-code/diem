@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { getPrivacySections, getPrivacyMeta } from '@/services/supabase-privacy';
-import type { PrivacySection, PrivacyMeta } from '@/services/supabase-privacy';
+import { getPrivacySections, getPrivacyMeta } from '@/services/Privacy';
+import type { PrivacySection, PrivacyMeta } from '@/services/Privacy';
 
 // ── Icon map ──────────────────────────────────────────────────────────────────
 const ICON_MAP: Record<string, React.ElementType> = {

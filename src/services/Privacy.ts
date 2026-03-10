@@ -1,51 +1,9 @@
-/**
- * supabase-privacy.ts
- * Service layer for the privacy_policy_sections and privacy_policy_meta tables.
- * Place this file at:  src/services/supabase-privacy.ts
- */
-
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl     = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: true, autoRefreshToken: true },
-});
+import { supabase } from "@/lib/Client";
+import type { PrivacyMeta, PrivacySection } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export interface PrivacyItem {
-  label?: string;
-  desc:   string;
-  icon?:  string;
-}
 
-export interface PrivacySection {
-  id:          string;
-  title:       string;
-  icon_name:   string;
-  color:       string;
-  body_text:   string;
-  items:       PrivacyItem[];
-  order_index: number;
-  active:      boolean;
-  created_at:  string;
-  updated_at:  string;
-}
-
-export interface PrivacyMeta {
-  id:            string;
-  last_updated:  string;
-  page_title:    string;
-  page_subtitle: string;
-  contact_email: string;
-  updated_at:    string;
-}
 
 export type NewPrivacySection = Omit<PrivacySection, 'id' | 'created_at' | 'updated_at'>;
 

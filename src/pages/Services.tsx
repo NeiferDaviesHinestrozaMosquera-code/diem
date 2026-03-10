@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
-import { getServices, subscribeToServices } from '@/services/supabase';
+import { getServices, subscribeToServices } from '@/services/Services';
 import type { Service } from '@/types';
 
 // Mapeo de nombres de iconos a componentes de Lucide

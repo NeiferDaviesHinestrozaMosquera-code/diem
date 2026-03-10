@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSiteSettings, subscribeToSiteSettings } from '@/services/supabase';
+import { getSiteSettings, subscribeToSiteSettings } from '@/services/Settings';
 import type { SiteSettings } from '@/types';
 
 interface UseSiteSettingsReturn {

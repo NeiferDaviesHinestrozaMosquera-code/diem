@@ -1,7 +1,4 @@
-// config/gemini.ts - VERSIÓN MEJORADA CON ANÁLISIS DETALLADO
-// Usa Supabase Edge Function con fallback inteligente y detallado
-
-import { supabase } from '@/lib/supabase-complete';
+import { supabase } from '@/lib/Client';
 
 // Tipo de reporte AI
 export interface AIReportData {

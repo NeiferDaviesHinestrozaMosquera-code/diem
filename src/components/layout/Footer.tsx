@@ -191,7 +191,10 @@ export function Footer() {
             >
               Privacy Policy
             </button>
-            <button className="text-muted-foreground hover:text-primary transition-colors text-sm">
+
+            <button 
+            onClick={() => handleNavigate('/terms')}
+            className="text-muted-foreground hover:text-primary transition-colors text-sm">
               Terms of Service
             </button>
           </div>

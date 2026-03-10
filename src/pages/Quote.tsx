@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { addQuoteRequest } from '@/services/supabase';
+import { addQuoteRequest } from '@/services/QuoteRequests';
 import { integratedReportService } from '@/services/integratedReportService';
 import { toast } from 'sonner';
 import type { QuoteRequest } from '@/types';
