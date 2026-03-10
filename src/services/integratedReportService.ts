@@ -9,7 +9,7 @@ import { useState, useCallback } from 'react';
 // ─────────────────────────────────────────────
 
 type Language    = 'es' | 'en';
-type QuoteStatus = 'pending' | 'processing' | 'completed' | 'error' | 'archived';
+type QuoteStatus = 'pending' | 'processed' | 'error';
 
 export interface ProcessOptions {
   language?:    Language;
@@ -107,7 +107,7 @@ export class IntegratedReportService {
         : undefined;
 
       // Paso 4 — Guardar en Supabase y marcar "completed"
-      await saveToSupabase(quoteRequest.id, aiReport, 'completed', pdfUrl);
+      await saveToSupabase(quoteRequest.id, aiReport, 'processed', pdfUrl);
 
       return { aiReport, pdfUrl, success: true };
 
@@ -255,7 +255,7 @@ export class IntegratedReportService {
 
   async unarchiveQuote(
     quoteId:   string,
-    newStatus: 'pending' | 'completed' = 'pending'
+    newStatus: 'pending' | 'processed' = 'pending'
   ): Promise<void> {
     await updateQuoteRequest(quoteId, { status: newStatus });
   }
@@ -310,7 +310,7 @@ export function useQuoteProcessor() {
     archiveQuote: (id: string) =>
       run(() => integratedReportService.archiveQuote(id)),
 
-    unarchiveQuote: (id: string, status?: 'pending' | 'completed') =>
+    unarchiveQuote: (id: string, status?: 'pending' | 'processed') =>
       run(() => integratedReportService.unarchiveQuote(id, status)),
   };
 }

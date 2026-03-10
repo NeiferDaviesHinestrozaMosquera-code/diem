@@ -72,7 +72,7 @@ export interface QuoteRequest {
   phone: string;
   service: string;
   projectDetails: string;
-  status: 'pending' | 'processing' | 'completed' | 'error' | 'archived';
+  status: 'pending' | 'processed' | 'error';
   createdAt: Date;
   updatedAt: Date;
   aiReport?: AIReport;
@@ -81,11 +81,9 @@ export interface QuoteRequest {
 
 // enum reemplazado por const + type para compatibilidad con erasableSyntaxOnly
 export const QuoteStatus = {
-  PENDING:    'pending',
-  PROCESSING: 'processing',
-  COMPLETED:  'completed',
-  ERROR:      'error',
-  ARCHIVED:   'archived',
+  PENDING:   'pending',
+  PROCESSED: 'processed',
+  ERROR:     'error',
 } as const;
 
 export type QuoteStatus = (typeof QuoteStatus)[keyof typeof QuoteStatus];
