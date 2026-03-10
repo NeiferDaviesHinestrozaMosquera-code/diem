@@ -91,12 +91,15 @@ export class IntegratedReportService {
 
     try {
       // Paso 2 — Generar AI Report
-      const aiReport = await generateAIQuoteReport(
+      const rawReport = await generateAIQuoteReport(
         quoteRequest.id,
         quoteRequest.projectDetails,
         quoteRequest.service,
         language
       );
+      // Cast explícito: generateAIQuoteReport devuelve language: string,
+      // pero AIReport.language es 'es' | 'en' | undefined.
+      const aiReport: AIReport = { ...rawReport, language };
 
       // Paso 3 — Generar PDF solo si ambas flags están activas
       const pdfUrl = generatePDF && uploadPDF
@@ -150,12 +153,13 @@ export class IntegratedReportService {
     targetLanguage: Language,
     uploadPDF = false
   ): Promise<ProcessResult> {
-    const aiReport = await generateAIQuoteReport(
+    const rawReport = await generateAIQuoteReport(
       quoteRequest.id,
       quoteRequest.projectDetails,
       quoteRequest.service,
       targetLanguage
     );
+    const aiReport: AIReport = { ...rawReport, language: targetLanguage };
 
     const pdfUrl = uploadPDF
       ? await buildAndUploadPDF(quoteRequest, aiReport, targetLanguage)

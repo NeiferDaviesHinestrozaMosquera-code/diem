@@ -1,5 +1,3 @@
-
-
 export interface Service {
   id: string;
   title: string;
@@ -81,13 +79,16 @@ export interface QuoteRequest {
   pdfUrl?: string;
 }
 
-export enum QuoteStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  ERROR = 'error',
-  ARCHIVED = 'archived',
-}
+// enum reemplazado por const + type para compatibilidad con erasableSyntaxOnly
+export const QuoteStatus = {
+  PENDING:    'pending',
+  PROCESSING: 'processing',
+  COMPLETED:  'completed',
+  ERROR:      'error',
+  ARCHIVED:   'archived',
+} as const;
+
+export type QuoteStatus = (typeof QuoteStatus)[keyof typeof QuoteStatus];
 
 export interface AIReport {
   estimatedTime: string;
@@ -163,7 +164,7 @@ export * from './QuoteRequests';
 export * from './Services';
 export * from './Settings';
 export * from './Storage';
-export * from './testimonials';
+export * from './Testimonials'; // módulo no encontrado — crear src/services/testimonials.ts antes de habilitar
 export * from './Privacy';
 export * from './TeamMember';
 export * from './TermsofServices'

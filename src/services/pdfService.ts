@@ -46,10 +46,10 @@ export class PDFService {
     let yPos = 20;
 
     // Colores
-    const primaryColor = [99, 102, 241]; // Indigo
-    const secondaryColor = [139, 92, 246]; // Purple
-    const textColor = [31, 41, 55];
-    const lightGray = [243, 244, 246];
+    const primaryColor:   [number, number, number] = [99, 102, 241];  // Indigo
+    const secondaryColor: [number, number, number] = [139, 92, 246];  // Purple
+    const textColor:      [number, number, number] = [31, 41, 55];
+    const lightGray:      [number, number, number] = [243, 244, 246];
 
     // Logo y título
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
