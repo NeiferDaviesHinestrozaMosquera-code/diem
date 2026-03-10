@@ -1,26 +1,72 @@
 import type { QuoteRequest, AIReport } from '@/types';
-import { generateAIQuoteReport } from '@/config/gemini';
-import { updateQuoteRequest, getQuoteRequests } from '@/services/QuoteRequests';
+import { generateAIQuoteReport, AIReportError } from '@/config/gemini';
+import { updateQuoteRequest, getQuoteRequestById } from '@/services/QuoteRequests';
 import { pdfService } from './pdfService';
+import { useState, useCallback } from 'react';
 
-// 🎯 Estados válidos según Supabase
+// ─────────────────────────────────────────────
+// TIPOS
+// ─────────────────────────────────────────────
+
+type Language    = 'es' | 'en';
 type QuoteStatus = 'pending' | 'processing' | 'completed' | 'error' | 'archived';
 
-interface ProcessOptions {
-  language?: 'es' | 'en';
+export interface ProcessOptions {
+  language?:    Language;
   generatePDF?: boolean;
-  uploadPDF?: boolean;
+  uploadPDF?:   boolean;
 }
 
-interface ProcessResult {
+export interface ProcessResult {
   aiReport: AIReport;
-  pdfUrl?: string;
-  success: boolean;
+  pdfUrl?:  string;
+  success:  boolean;
 }
+
+interface BatchResult {
+  quoteRequestId: string;
+  success:        boolean;
+  aiReport?:      AIReport;
+  pdfUrl?:        string;
+  error?:         string;
+}
+
+// ─────────────────────────────────────────────
+// HELPERS INTERNOS
+// ─────────────────────────────────────────────
+
+async function buildAndUploadPDF(
+  quote: QuoteRequest,
+  aiReport: AIReport,
+  language: Language
+): Promise<string | undefined> {
+  try {
+    return await pdfService.uploadPDFToStorage({ ...quote, aiReport }, language);
+  } catch (err) {
+    console.error('[PDF] Error generando PDF:', err);
+    return undefined;
+  }
+}
+
+async function saveToSupabase(
+  quoteId:  string,
+  aiReport: AIReport,
+  status:   QuoteStatus,
+  pdfUrl?:  string
+): Promise<void> {
+  await updateQuoteRequest(quoteId, {
+    aiReport,
+    status,
+    ...(pdfUrl ? { pdfUrl } : {}),
+  });
+}
+
+// ─────────────────────────────────────────────
+// SERVICIO PRINCIPAL
+// ─────────────────────────────────────────────
 
 export class IntegratedReportService {
   private static instance: IntegratedReportService;
-
   private constructor() {}
 
   public static getInstance(): IntegratedReportService {
@@ -31,15 +77,8 @@ export class IntegratedReportService {
   }
 
   /**
-   * 🎯 FUNCIÓN PRINCIPAL: Procesa una cotización completa
-   * 
-   * FLUJO:
-   * 1. Cambia estado a "processing"
-   * 2. Genera AI report
-   * 3. GUARDA en Supabase (campo ai_report)
-   * 4. CAMBIA estado a "completed"
-   * 5. Genera PDF (opcional)
-   * 6. Realtime notifica el cambio
+   * Procesa una cotización completa:
+   * pending → processing → completed (o error)
    */
   async processQuoteRequest(
     quoteRequest: QuoteRequest,
@@ -47,28 +86,11 @@ export class IntegratedReportService {
   ): Promise<ProcessResult> {
     const { language = 'es', generatePDF = false, uploadPDF = false } = options;
 
-    console.log('╔════════════════════════════════════════════════════╗');
-    console.log('║  🚀 PROCESAMIENTO DE COTIZACIÓN - FLUJO COMPLETO  ║');
-    console.log('╚════════════════════════════════════════════════════╝');
-    console.log(`📋 Quote ID: ${quoteRequest.id}`);
-    console.log(`👤 Cliente: ${quoteRequest.fullName}`);
-    console.log(`🔧 Servicio: ${quoteRequest.service}`);
-    console.log(`🌍 Idioma: ${language}`);
-    console.log('─────────────────────────────────────────────────────');
+    // Paso 1 — Marcar como "processing"
+    await updateQuoteRequest(quoteRequest.id, { status: 'processing' });
 
     try {
-      // ═══════════════════════════════════════════════════════
-      // PASO 1: Cambiar estado a "processing"
-      // ═══════════════════════════════════════════════════════
-      console.log('\n🔄 PASO 1: Actualizando estado a "processing"...');
-      await updateQuoteRequest(quoteRequest.id, { status: 'processing' });
-      console.log('✅ Estado actualizado a "processing"');
-
-      // ═══════════════════════════════════════════════════════
-      // PASO 2: Generar AI Report
-      // ═══════════════════════════════════════════════════════
-      console.log('\n📊 PASO 2: Generando AI Report...');
-      
+      // Paso 2 — Generar AI Report
       const aiReport = await generateAIQuoteReport(
         quoteRequest.id,
         quoteRequest.projectDetails,
@@ -76,108 +98,40 @@ export class IntegratedReportService {
         language
       );
 
-      console.log('✅ AI Report generado exitosamente');
-      console.log(`   💰 Costo total: $${aiReport.totalCost}`);
-      console.log(`   ⏱️ Tiempo: ${aiReport.estimatedTime}`);
-      console.log(`   👥 Equipo: ${aiReport.requiredTeamMembers} personas`);
-      console.log(`   📈 Dificultad: ${aiReport.difficultyLevel}`);
-      console.log(`   🛠️ Tecnologías: ${aiReport.recommendedTechnologies.length}`);
+      // Paso 3 — Generar PDF solo si ambas flags están activas
+      const pdfUrl = generatePDF && uploadPDF
+        ? await buildAndUploadPDF(quoteRequest, aiReport, language)
+        : undefined;
 
-      // ═══════════════════════════════════════════════════════
-      // PASO 3: GUARDAR en Supabase + CAMBIAR estado a "completed"
-      // ═══════════════════════════════════════════════════════
-      console.log('\n💾 PASO 3: Guardando en Supabase...');
-      
-      let pdfUrl: string | undefined = undefined;
+      // Paso 4 — Guardar en Supabase y marcar "completed"
+      await saveToSupabase(quoteRequest.id, aiReport, 'completed', pdfUrl);
 
-      // Generar PDF si se solicita
-      if (generatePDF && uploadPDF) {
-        console.log('📄 Generando y subiendo PDF...');
-        const updatedQuote = { ...quoteRequest, aiReport };
-        pdfUrl = await pdfService.uploadPDFToStorage(updatedQuote, language);
-        console.log(`✅ PDF generado: ${pdfUrl}`);
-      }
+      return { aiReport, pdfUrl, success: true };
 
-      // 🎯 ACTUALIZACIÓN CRÍTICA: Guardar AI Report + Estado + PDF URL
-      const updateData: {
-        aiReport: AIReport;
-        status: QuoteStatus;
-        pdfUrl?: string;
-      } = {
-        aiReport: aiReport,
-        status: 'completed', // ← Estado cambia a completado
-        pdfUrl: pdfUrl,
-      };
-
-      console.log('🔄 Actualizando Supabase con:');
-      console.log('   ✓ AI Report (guardado en campo ai_report)');
-      console.log('   ✓ Estado → "completed"');
-      if (pdfUrl) console.log(`   ✓ PDF URL → ${pdfUrl}`);
-
-      await updateQuoteRequest(quoteRequest.id, updateData);
-
-      console.log('✅ Supabase actualizado exitosamente');
-      console.log('📡 Realtime notificará el cambio automáticamente');
-
-      // ═══════════════════════════════════════════════════════
-      // PASO 4: Confirmación Final
-      // ═══════════════════════════════════════════════════════
-      console.log('\n╔════════════════════════════════════════════════════╗');
-      console.log('║         ✅ PROCESAMIENTO COMPLETADO               ║');
-      console.log('╚════════════════════════════════════════════════════╝');
-      console.log('📊 Resultados:');
-      console.log(`   • AI Report: ✅ Generado y guardado`);
-      console.log(`   • Estado: ✅ Actualizado a "completed"`);
-      console.log(`   • PDF: ${pdfUrl ? '✅ Generado y subido' : '⏭️ No solicitado'}`);
-      console.log(`   • Realtime: ✅ Sincronizado`);
-      console.log('─────────────────────────────────────────────────────\n');
-
-      return {
-        aiReport,
-        pdfUrl,
-        success: true,
-      };
     } catch (error) {
-      console.error('\n╔════════════════════════════════════════════════════╗');
-      console.error('║          ❌ ERROR EN PROCESAMIENTO                ║');
-      console.error('╚════════════════════════════════════════════════════╝');
-      console.error('Quote ID:', quoteRequest.id);
-      console.error('Error:', error);
-      console.error('─────────────────────────────────────────────────────\n');
+      // Si el error es por rate limit o AI no disponible → volver a "pending"
+      // para que el admin pueda procesarlo manualmente más tarde.
+      // Cualquier otro error real → marcar como "error".
+      const isAIUnavailable =
+        error instanceof AIReportError &&
+        (error.code === 'RATE_LIMITED' || error.code === 'NO_KEYS');
 
-      // Actualizar estado a error
-      try {
-        await updateQuoteRequest(quoteRequest.id, { status: 'error' });
-        console.log('✅ Estado actualizado a "error"');
-      } catch (updateError) {
-        console.error('❌ No se pudo actualizar estado de error:', updateError);
-      }
-
+      const fallbackStatus: QuoteStatus = isAIUnavailable ? 'pending' : 'error';
+      await updateQuoteRequest(quoteRequest.id, { status: fallbackStatus }).catch(() => {});
       throw error;
     }
   }
 
   /**
-   * Regenera un reporte completo (nuevo AI + nuevo PDF)
+   * Regenera AI report + PDF, eliminando el PDF anterior si existe.
    */
   async regenerateComplete(
     quoteRequest: QuoteRequest,
-    language: 'es' | 'en' = 'es',
-    uploadPDF: boolean = true
+    language: Language = 'es',
+    uploadPDF = true
   ): Promise<ProcessResult> {
-    console.log('🔄 Regenerando reporte completo...');
-    console.log(`   Quote ID: ${quoteRequest.id}`);
-    console.log(`   Idioma: ${language}`);
-
-    // Eliminar PDF anterior si existe
     if (quoteRequest.pdfUrl && uploadPDF) {
-      try {
-        console.log('🗑️ Eliminando PDF anterior...');
-        await pdfService.deletePDFFromStorage(quoteRequest.pdfUrl);
-        console.log('✅ PDF anterior eliminado');
-      } catch (error) {
-        console.warn('⚠️ No se pudo eliminar PDF anterior:', error);
-      }
+      await pdfService.deletePDFFromStorage(quoteRequest.pdfUrl).catch(() => {});
     }
 
     return this.processQuoteRequest(quoteRequest, {
@@ -188,233 +142,171 @@ export class IntegratedReportService {
   }
 
   /**
-   * Traduce un reporte existente
+   * Genera el reporte en otro idioma SIN sobreescribir el original en Supabase.
+   * El componente decide qué hacer con el resultado.
    */
   async generateTranslation(
     quoteRequest: QuoteRequest,
-    targetLanguage: 'es' | 'en',
-    uploadPDF: boolean = true
+    targetLanguage: Language,
+    uploadPDF = false
   ): Promise<ProcessResult> {
-    console.log(`🌍 Generando traducción a ${targetLanguage}...`);
-    console.log(`   Quote ID: ${quoteRequest.id}`);
-    console.log(`   Idioma actual: ${quoteRequest.aiReport?.language || 'N/A'}`);
-    console.log(`   Idioma objetivo: ${targetLanguage}`);
+    const aiReport = await generateAIQuoteReport(
+      quoteRequest.id,
+      quoteRequest.projectDetails,
+      quoteRequest.service,
+      targetLanguage
+    );
 
-    return this.processQuoteRequest(quoteRequest, {
-      language: targetLanguage,
-      generatePDF: true,
-      uploadPDF,
-    });
+    const pdfUrl = uploadPDF
+      ? await buildAndUploadPDF(quoteRequest, aiReport, targetLanguage)
+      : undefined;
+
+    // No persiste en Supabase — preserva el reporte original
+    return { aiReport, pdfUrl, success: true };
   }
 
   /**
-   * Solo actualiza el PDF sin regenerar el AI report
+   * Actualiza solo el PDF de un quote que ya tiene AI report.
+   * CORREGIDO: respeta el parámetro uploadPDF (antes se ignoraba).
    */
   async updatePDFOnly(
     quoteRequest: QuoteRequest,
-    uploadPDF: boolean = true
+    uploadPDF = true
   ): Promise<ProcessResult> {
     if (!quoteRequest.aiReport) {
-      throw new Error('No hay AI report para generar PDF');
+      throw new Error('No hay AI report disponible para generar el PDF.');
     }
 
-    console.log('📄 Actualizando solo el PDF...');
+    const language = (quoteRequest.aiReport.language as Language) ?? 'es';
 
-    try {
-      const pdfUrl = await pdfService.uploadPDFToStorage(
-        quoteRequest,
-        quoteRequest.aiReport.language
-      );
+    const pdfUrl = uploadPDF
+      ? await buildAndUploadPDF(quoteRequest, quoteRequest.aiReport, language)
+      : undefined;
 
-      // Actualizar solo el PDF URL
-      await updateQuoteRequest(quoteRequest.id, {
-        pdfUrl: pdfUrl,
-      });
-
-      console.log('✅ PDF actualizado');
-
-      return {
-        aiReport: quoteRequest.aiReport,
-        pdfUrl,
-        success: true,
-      };
-    } catch (error) {
-      console.error('❌ Error actualizando PDF:', error);
-      throw error;
+    if (pdfUrl) {
+      await updateQuoteRequest(quoteRequest.id, { pdfUrl });
     }
+
+    return { aiReport: quoteRequest.aiReport, pdfUrl, success: true };
   }
 
   /**
-   * Procesa múltiples cotizaciones en lote
+   * Procesa múltiples cotizaciones en lote.
+   * CORREGIDO: usa getQuoteRequestById en lugar de traer toda la tabla.
+   * Controla concurrencia para no saturar la Edge Function.
    */
   async processBatch(
     quoteRequestIds: string[],
-    options: ProcessOptions = {}
-  ): Promise<
-    Array<{
-      quoteRequestId: string;
-      success: boolean;
-      aiReport?: AIReport;
-      pdfUrl?: string;
-      error?: string;
-    }>
-  > {
-    console.log(`\n📦 Procesando ${quoteRequestIds.length} cotizaciones en lote...`);
-    console.log('═══════════════════════════════════════════════════════\n');
+    options: ProcessOptions = {},
+    concurrency = 3
+  ): Promise<BatchResult[]> {
+    const results: BatchResult[] = [];
 
-    const results = [];
-    const allQuotes = await getQuoteRequests();
+    for (let i = 0; i < quoteRequestIds.length; i += concurrency) {
+      const chunk = quoteRequestIds.slice(i, i + concurrency);
 
-    for (let i = 0; i < quoteRequestIds.length; i++) {
-      const id = quoteRequestIds[i];
-      console.log(`[${i + 1}/${quoteRequestIds.length}] Procesando: ${id}`);
+      const chunkResults = await Promise.allSettled(
+        chunk.map(async (id): Promise<BatchResult> => {
+          const quote = await getQuoteRequestById(id);
 
-      const quote = allQuotes.find((q) => q.id === id);
+          if (!quote) {
+            return { quoteRequestId: id, success: false, error: 'Cotización no encontrada' };
+          }
 
-      if (!quote) {
-        console.error(`❌ Cotización no encontrada: ${id}`);
-        results.push({
-          quoteRequestId: id,
-          success: false,
-          error: 'Cotización no encontrada',
-        });
-        continue;
-      }
+          const result = await this.processQuoteRequest(quote, options);
+          return { quoteRequestId: id, ...result };
+        })
+      );
 
-      try {
-        const result = await this.processQuoteRequest(quote, options);
-        console.log(`✅ [${i + 1}/${quoteRequestIds.length}] Completado\n`);
-        results.push({
-          quoteRequestId: id,
-          success: true,
-          ...result,
-        });
-      } catch (error) {
-        console.error(`❌ [${i + 1}/${quoteRequestIds.length}] Error:`, error);
-        results.push({
-          quoteRequestId: id,
-          success: false,
-          error: error instanceof Error ? error.message : 'Error desconocido',
-        });
-      }
+      chunkResults.forEach((r, idx) => {
+        if (r.status === 'fulfilled') {
+          results.push(r.value);
+        } else {
+          results.push({
+            quoteRequestId: chunk[idx],
+            success: false,
+            error: r.reason instanceof Error ? r.reason.message : 'Error desconocido',
+          });
+        }
+      });
     }
-
-    const successful = results.filter((r) => r.success).length;
-    console.log('\n═══════════════════════════════════════════════════════');
-    console.log(`📊 Resumen del lote: ${successful}/${results.length} exitosos`);
-    console.log('═══════════════════════════════════════════════════════\n');
 
     return results;
   }
 
-  /**
-   * Verifica si un quote tiene reporte
-   */
-  hasReport(quoteRequest: QuoteRequest): boolean {
-    return !!quoteRequest.aiReport;
+  // ── Helpers de estado ───────────────────────────────────────────
+
+  hasReport(q: QuoteRequest):    boolean          { return !!q.aiReport; }
+  isArchived(q: QuoteRequest):   boolean          { return q.status === 'archived'; }
+  isProcessing(q: QuoteRequest): boolean          { return q.status === 'processing'; }
+  getReportLanguage(q: QuoteRequest): Language | null {
+    return (q.aiReport?.language as Language) ?? null;
   }
 
-  /**
-   * Obtiene el idioma del reporte actual
-   */
-  getReportLanguage(quoteRequest: QuoteRequest): 'es' | 'en' | null {
-    return (quoteRequest.aiReport?.language as 'es' | 'en') || null;
-  }
+  // ── Archivo ─────────────────────────────────────────────────────
 
-  /**
-   * Archivar una cotización
-   */
   async archiveQuote(quoteId: string): Promise<void> {
-    console.log(`📦 Archivando cotización: ${quoteId}`);
-    try {
-      await updateQuoteRequest(quoteId, { status: 'archived' });
-      console.log('✅ Cotización archivada exitosamente');
-    } catch (error) {
-      console.error('❌ Error archivando cotización:', error);
-      throw error;
-    }
+    await updateQuoteRequest(quoteId, { status: 'archived' });
   }
 
-  /**
-   * Desarchivar una cotización
-   */
-  async unarchiveQuote(quoteId: string, newStatus: 'pending' | 'completed' = 'pending'): Promise<void> {
-    console.log(`📤 Desarchivando cotización: ${quoteId}`);
-    try {
-      await updateQuoteRequest(quoteId, { status: newStatus });
-      console.log(`✅ Cotización desarchivada, nuevo estado: ${newStatus}`);
-    } catch (error) {
-      console.error('❌ Error desarchivando cotización:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Verifica si una cotización está archivada
-   */
-  isArchived(quoteRequest: QuoteRequest): boolean {
-    return quoteRequest.status === 'archived';
-  }
-
-  /**
-   * Verifica si una cotización está en procesamiento
-   */
-  isProcessing(quoteRequest: QuoteRequest): boolean {
-    return quoteRequest.status === 'processing';
+  async unarchiveQuote(
+    quoteId:   string,
+    newStatus: 'pending' | 'completed' = 'pending'
+  ): Promise<void> {
+    await updateQuoteRequest(quoteId, { status: newStatus });
   }
 }
 
-// ════════════════════════════════════════════════════════
-// EXPORTAR INSTANCIA SINGLETON
-// ════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// SINGLETON
+// ─────────────────────────────────────────────
 
 export const integratedReportService = IntegratedReportService.getInstance();
 
-// ════════════════════════════════════════════════════════
-// HOOKS DE REACT (Opcional)
-// ════════════════════════════════════════════════════════
+// ─────────────────────────────────────────────
+// HOOK — con estado de carga y error
+// ─────────────────────────────────────────────
 
-/**
- * Hook para usar en componentes React
- */
+interface QuoteProcessorState {
+  isLoading: boolean;
+  error:     string | null;
+}
+
 export function useQuoteProcessor() {
-  const processQuote = async (
-    quoteRequest: QuoteRequest,
-    options?: ProcessOptions
-  ) => {
-    return integratedReportService.processQuoteRequest(quoteRequest, options);
-  };
+  const [state, setState] = useState<QuoteProcessorState>({
+    isLoading: false,
+    error:     null,
+  });
 
-  const regenerateQuote = async (
-    quoteRequest: QuoteRequest,
-    language: 'es' | 'en' = 'es'
-  ) => {
-    return integratedReportService.regenerateComplete(quoteRequest, language);
-  };
-
-  const translateQuote = async (
-    quoteRequest: QuoteRequest,
-    targetLanguage: 'es' | 'en'
-  ) => {
-    return integratedReportService.generateTranslation(
-      quoteRequest,
-      targetLanguage
-    );
-  };
-
-  const archiveQuote = async (quoteId: string) => {
-    return integratedReportService.archiveQuote(quoteId);
-  };
-
-  const unarchiveQuote = async (quoteId: string, newStatus?: 'pending' | 'completed') => {
-    return integratedReportService.unarchiveQuote(quoteId, newStatus);
-  };
+  const run = useCallback(async <T>(fn: () => Promise<T>): Promise<T | null> => {
+    setState({ isLoading: true, error: null });
+    try {
+      const result = await fn();
+      setState({ isLoading: false, error: null });
+      return result;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error desconocido';
+      setState({ isLoading: false, error: msg });
+      return null;
+    }
+  }, []);
 
   return {
-    processQuote,
-    regenerateQuote,
-    translateQuote,
-    archiveQuote,
-    unarchiveQuote,
+    ...state,
+
+    processQuote: (q: QuoteRequest, opts?: ProcessOptions) =>
+      run(() => integratedReportService.processQuoteRequest(q, opts)),
+
+    regenerateQuote: (q: QuoteRequest, lang: Language = 'es') =>
+      run(() => integratedReportService.regenerateComplete(q, lang)),
+
+    translateQuote: (q: QuoteRequest, lang: Language) =>
+      run(() => integratedReportService.generateTranslation(q, lang)),
+
+    archiveQuote: (id: string) =>
+      run(() => integratedReportService.archiveQuote(id)),
+
+    unarchiveQuote: (id: string, status?: 'pending' | 'completed') =>
+      run(() => integratedReportService.unarchiveQuote(id, status)),
   };
 }

@@ -39,7 +39,7 @@ function AppContent() {
       {!isAdmin && <Header />}
       {isAdmin && !isLoginPage && <AdminHeader />}
 
-      <main className={!isAdmin ? 'pt-20' : ''}>
+      <main className={!isAdmin ? 'pt-0' : ''}>
         <Routes>
           {/* Rutas públicas */}
           <Route path="/" element={<Home />} />

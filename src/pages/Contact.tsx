@@ -9,31 +9,23 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSiteSettings } from '@/hooks/use-siteSettings';
 
-// Valores por defecto cuando la BD no tiene datos
-const DEFAULTS = {
-  siteName:     'Digital Emporium',
-  contactText:  '',
-  email:        'contact@digitalemporium.com',
-  phone:        '+1 (555) 123-4567',
-  address:      '123 Tech Street, San Francisco, CA 94105',
-  whatsapp:     '15551234567',
-};
+
 
 export function Contact() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { settings, loading } = useSiteSettings();
 
-  // Datos: BD con fallback a DEFAULTS
-  const siteName    = settings?.siteName    || DEFAULTS.siteName;
-  const contactText = settings?.contactText || DEFAULTS.contactText;
-  const email       = settings?.contactInfo?.email   || settings?.contactEmail   || DEFAULTS.email;
-  const phone       = settings?.contactInfo?.phone   || settings?.contactPhone   || DEFAULTS.phone;
-  const address     = settings?.contactInfo?.address || settings?.contactAddress || DEFAULTS.address;
+  // Datos: BD sin fallback a DEFAULTS
+  const siteName    = settings?.siteName;
+  const contactText = settings?.contactText;
+  const email       = settings?.contactInfo?.email   || settings?.contactEmail;
+  const phone       = settings?.contactInfo?.phone   || settings?.contactPhone;
+  const address     = settings?.contactInfo?.address || settings?.contactAddress;
 
   const social         = settings?.socialLinks ?? {};
-  const whatsappRaw    = social.whatsapp || DEFAULTS.whatsapp;
-  const whatsappNumber = whatsappRaw.replace(/\D/g, '');
+  const whatsappRaw    = social.whatsapp;
+  const whatsappNumber = whatsappRaw;
   const whatsappHref   = `https://wa.me/${phone}`;
 
   const contactItems = [
@@ -266,7 +258,7 @@ export function Contact() {
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => window.open('https://maps.google.com', '_blank')}
+                    onClick={() => window.open('https://www.google.com/maps/place/Servibanca/@4.6842317,-74.08096,19z/data=!4m6!3m5!1s0x8e3f9ba6c6cb435d:0xc1e29e0434474530!8m2!3d4.684057!4d-74.080402!16s%2Fg%2F11h7g4p6z5?entry=ttu&g_ep=EgoyMDI2MDMwNC4xIKXMDSoASAFQAw%3D%3D', '_blank')}
                   >
                     Get Directions
                   </Button>
