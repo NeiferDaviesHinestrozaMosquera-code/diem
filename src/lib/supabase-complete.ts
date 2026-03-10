@@ -27,7 +27,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // ============================================
 
 // 🎯 IMPORTANTE: Estados que coinciden con el constraint de Supabase
-type QuoteStatus = 'pending' | 'processed' | 'error' | 'archived';
+type QuoteStatus = 'pending' | 'processing' | 'completed' | 'error' | 'archived';
 
 interface QuoteRequestUpdate {
   aiReport?: AIReport;
@@ -433,7 +433,7 @@ export async function getQuoteRequestStats(): Promise<{
     return {
       total: allQuotes.length,
       pending: allQuotes.filter((q) => q.status === 'pending').length,
-      processed: allQuotes.filter((q) => q.status === 'processed').length,
+      processed: allQuotes.filter((q) => q.status === 'completed').length,
       error: allQuotes.filter((q) => q.status === 'error').length,
       archived: allQuotes.filter((q) => q.status === 'archived').length,
     };
@@ -507,3 +507,5 @@ export default {
   quoteRequestExists,
   checkSupabaseConnection,
 };
+
+

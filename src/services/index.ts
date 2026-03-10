@@ -41,7 +41,9 @@ export interface Testimonial {
   createdAt: Date;
 }
 
-// ACTUALIZADO: Estados correctos según constraint de base de datos
+// ═══════════════════════════════════════════════════════════════
+// QUOTE REQUEST - 5 ESTADOS
+// ═══════════════════════════════════════════════════════════════
 
 export interface QuoteRequest {
   id: string;
@@ -56,6 +58,15 @@ export interface QuoteRequest {
   updatedAt: Date;
   aiReport?: AIReport;
   pdfUrl?: string; // URL del PDF generado
+}
+
+// Enum opcional para mayor type-safety
+export enum QuoteStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  ERROR = 'error',
+  ARCHIVED = 'archived',
 }
 
 export interface AIReport {

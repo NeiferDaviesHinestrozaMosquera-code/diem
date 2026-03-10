@@ -3,8 +3,8 @@ import { generateAIQuoteReport } from '@/config/gemini';
 import { updateQuoteRequest, getQuoteRequests } from '@/lib/supabase-complete';
 import { pdfService } from './pdfService';
 
-// 🎯 Estados válidos según Supabase (verificar tu schema)
-type QuoteStatus = 'pending' | 'processed' | 'error' | 'archived';
+// 🎯 Estados válidos según Supabase
+type QuoteStatus = 'pending' | 'processing' | 'completed' | 'error' | 'archived';
 
 interface ProcessOptions {
   language?: 'es' | 'en';
@@ -34,11 +34,12 @@ export class IntegratedReportService {
    * 🎯 FUNCIÓN PRINCIPAL: Procesa una cotización completa
    * 
    * FLUJO:
-   * 1. Genera AI report
-   * 2. GUARDA en Supabase (campo ai_report)
-   * 3. CAMBIA estado a "processed"
-   * 4. Genera PDF (opcional)
-   * 5. Realtime notifica el cambio
+   * 1. Cambia estado a "processing"
+   * 2. Genera AI report
+   * 3. GUARDA en Supabase (campo ai_report)
+   * 4. CAMBIA estado a "completed"
+   * 5. Genera PDF (opcional)
+   * 6. Realtime notifica el cambio
    */
   async processQuoteRequest(
     quoteRequest: QuoteRequest,
@@ -57,9 +58,16 @@ export class IntegratedReportService {
 
     try {
       // ═══════════════════════════════════════════════════════
-      // PASO 1: Generar AI Report
+      // PASO 1: Cambiar estado a "processing"
       // ═══════════════════════════════════════════════════════
-      console.log('\n📊 PASO 1: Generando AI Report...');
+      console.log('\n🔄 PASO 1: Actualizando estado a "processing"...');
+      await updateQuoteRequest(quoteRequest.id, { status: 'processing' });
+      console.log('✅ Estado actualizado a "processing"');
+
+      // ═══════════════════════════════════════════════════════
+      // PASO 2: Generar AI Report
+      // ═══════════════════════════════════════════════════════
+      console.log('\n📊 PASO 2: Generando AI Report...');
       
       const aiReport = await generateAIQuoteReport(
         quoteRequest.id,
@@ -76,9 +84,9 @@ export class IntegratedReportService {
       console.log(`   🛠️ Tecnologías: ${aiReport.recommendedTechnologies.length}`);
 
       // ═══════════════════════════════════════════════════════
-      // PASO 2: GUARDAR en Supabase + CAMBIAR estado
+      // PASO 3: GUARDAR en Supabase + CAMBIAR estado a "completed"
       // ═══════════════════════════════════════════════════════
-      console.log('\n💾 PASO 2: Guardando en Supabase...');
+      console.log('\n💾 PASO 3: Guardando en Supabase...');
       
       let pdfUrl: string | undefined = undefined;
 
@@ -97,13 +105,13 @@ export class IntegratedReportService {
         pdfUrl?: string;
       } = {
         aiReport: aiReport,
-        status: 'processed', // ← Estado cambia automáticamente
+        status: 'completed', // ← Estado cambia a completado
         pdfUrl: pdfUrl,
       };
 
       console.log('🔄 Actualizando Supabase con:');
       console.log('   ✓ AI Report (guardado en campo ai_report)');
-      console.log('   ✓ Estado → "processed"');
+      console.log('   ✓ Estado → "completed"');
       if (pdfUrl) console.log(`   ✓ PDF URL → ${pdfUrl}`);
 
       await updateQuoteRequest(quoteRequest.id, updateData);
@@ -112,14 +120,14 @@ export class IntegratedReportService {
       console.log('📡 Realtime notificará el cambio automáticamente');
 
       // ═══════════════════════════════════════════════════════
-      // PASO 3: Confirmación Final
+      // PASO 4: Confirmación Final
       // ═══════════════════════════════════════════════════════
       console.log('\n╔════════════════════════════════════════════════════╗');
       console.log('║         ✅ PROCESAMIENTO COMPLETADO               ║');
       console.log('╚════════════════════════════════════════════════════╝');
       console.log('📊 Resultados:');
       console.log(`   • AI Report: ✅ Generado y guardado`);
-      console.log(`   • Estado: ✅ Actualizado a "processed"`);
+      console.log(`   • Estado: ✅ Actualizado a "completed"`);
       console.log(`   • PDF: ${pdfUrl ? '✅ Generado y subido' : '⏭️ No solicitado'}`);
       console.log(`   • Realtime: ✅ Sincronizado`);
       console.log('─────────────────────────────────────────────────────\n');
@@ -312,6 +320,48 @@ export class IntegratedReportService {
   getReportLanguage(quoteRequest: QuoteRequest): 'es' | 'en' | null {
     return (quoteRequest.aiReport?.language as 'es' | 'en') || null;
   }
+
+  /**
+   * Archivar una cotización
+   */
+  async archiveQuote(quoteId: string): Promise<void> {
+    console.log(`📦 Archivando cotización: ${quoteId}`);
+    try {
+      await updateQuoteRequest(quoteId, { status: 'archived' });
+      console.log('✅ Cotización archivada exitosamente');
+    } catch (error) {
+      console.error('❌ Error archivando cotización:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Desarchivar una cotización
+   */
+  async unarchiveQuote(quoteId: string, newStatus: 'pending' | 'completed' = 'pending'): Promise<void> {
+    console.log(`📤 Desarchivando cotización: ${quoteId}`);
+    try {
+      await updateQuoteRequest(quoteId, { status: newStatus });
+      console.log(`✅ Cotización desarchivada, nuevo estado: ${newStatus}`);
+    } catch (error) {
+      console.error('❌ Error desarchivando cotización:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verifica si una cotización está archivada
+   */
+  isArchived(quoteRequest: QuoteRequest): boolean {
+    return quoteRequest.status === 'archived';
+  }
+
+  /**
+   * Verifica si una cotización está en procesamiento
+   */
+  isProcessing(quoteRequest: QuoteRequest): boolean {
+    return quoteRequest.status === 'processing';
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -352,9 +402,19 @@ export function useQuoteProcessor() {
     );
   };
 
+  const archiveQuote = async (quoteId: string) => {
+    return integratedReportService.archiveQuote(quoteId);
+  };
+
+  const unarchiveQuote = async (quoteId: string, newStatus?: 'pending' | 'completed') => {
+    return integratedReportService.unarchiveQuote(quoteId, newStatus);
+  };
+
   return {
     processQuote,
     regenerateQuote,
     translateQuote,
+    archiveQuote,
+    unarchiveQuote,
   };
 }

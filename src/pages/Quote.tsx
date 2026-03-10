@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -59,11 +59,15 @@ interface SubmissionResult {
 }
 
 export function Quote() {
+  const location = useLocation();
+  const preselectedService = (location.state as { service?: string })?.service ?? '';
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [autoGenerateAI, setAutoGenerateAI] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState<'es' | 'en'>('es');
+  const [selectedService, setSelectedService] = useState(preselectedService);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -74,6 +78,9 @@ export function Quote() {
     formState: { errors },
   } = useForm<QuoteFormData>({
     resolver: zodResolver(quoteSchema),
+    defaultValues: {
+      service: preselectedService,
+    },
   });
 
   const onSubmit = async (data: QuoteFormData) => {
@@ -243,7 +250,7 @@ export function Quote() {
   }
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen pt-0">
       {/* Header */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
@@ -407,7 +414,13 @@ export function Quote() {
                   <Briefcase className="w-4 h-4" />
                   Service of Interest *
                 </Label>
-                <Select onValueChange={(value) => setValue('service', value)}>
+                <Select
+                  value={selectedService}
+                  onValueChange={(value) => {
+                    setSelectedService(value);
+                    setValue('service', value);
+                  }}
+                >
                   <SelectTrigger className={errors.service ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>

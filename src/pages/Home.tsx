@@ -258,7 +258,8 @@ export function Home() {
           </div>
         </div>
       </section>
-
+      
+        
       {/* Stats */}
       <section className="py-20 bg-gradient-to-r from-primary to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -303,7 +304,7 @@ export function Home() {
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div>
                 <h3 className="text-2xl md:text-3xl font-bold mb-2">
-                  Ready to start your project?
+                  READY TO START YOUR PROJECT?
                 </h3>
                 <p className="text-muted-foreground">
                   Let's create something amazing together

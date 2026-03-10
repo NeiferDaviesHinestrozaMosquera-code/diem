@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/Header';
+import { AdminHeader } from '@/components/layout/AdminHeader';
 import { Footer } from '@/components/layout/Footer';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Home } from '@/pages/Home';
@@ -18,33 +19,39 @@ import { ProjectsAdmin } from '@/pages/admin/ProjectsAdmin';
 import { TestimonialsAdmin } from '@/pages/admin/TestimonialsAdmin';
 import { ClientInquiries } from '@/pages/admin/ClientInquiries';
 import { SiteSettings } from '@/pages/admin/SiteSettings';
+import { PrivacyPolicyAdmin } from '@/pages/admin/PrivacyPolicyAdmin';
 import './i18n';
 import './App.css';
+import { PrivacyPolicy } from './pages/PrivacyPolicy';
 
 function AppContent() {
-  const { pathname } = window.location;
-  const isAdmin = pathname.startsWith('/admin');
-  const isLoginPage = pathname === '/admin/login';
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith('/admin');
+  const isLoginPage = location.pathname === '/admin/login';
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* No mostrar Header en la página de login */}
-      {!isLoginPage && <Header isAdmin={isAdmin} />}
-      
-      <main className={isAdmin ? '' : 'pt-20'}>
+      {/* Header público */}
+      {!isAdmin && <Header />}
+
+      {/* AdminHeader solo en rutas admin (excepto login) */}
+      {isAdmin && !isLoginPage && <AdminHeader />}
+
+      <main className={!isAdmin ? 'pt-20' : ''}>
         <Routes>
-          {/* Public Routes */}
+          {/* Rutas públicas */}
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<Services />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/quote" element={<Quote />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
 
-          {/* Admin Login Route (Pública) */}
+          {/* Login admin (pública) */}
           <Route path="/admin/login" element={<Login />} />
 
-          {/* Protected Admin Routes */}
+          {/* Rutas admin protegidas */}
           <Route
             path="/admin"
             element={
@@ -93,12 +100,22 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+
+          {/* ✅ NUEVA RUTA: Privacy Policy admin */}
+          <Route
+            path="/admin/privacy"
+            element={
+              <ProtectedRoute>
+                <PrivacyPolicyAdmin />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
-      
-      {/* No mostrar Footer en páginas admin */}
+
+      {/* Footer solo en rutas públicas */}
       {!isAdmin && <Footer />}
-      
+
       <Toaster position="top-center" />
     </div>
   );

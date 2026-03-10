@@ -49,7 +49,7 @@ export interface QuoteRequest {
   phone: string;
   service: string;
   projectDetails: string;
-   status: 'pending' | 'reviewed' | 'quoted' | 'approved' | 'rejected' | 'processed' | 'error' | 'archived';
+   status: 'pending' | 'processing' | 'completed' | 'error' | 'archived';
   createdAt: Date;
   updatedAt: Date;
   aiReport?: AIReport;

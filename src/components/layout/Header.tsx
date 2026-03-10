@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Palette, ShoppingBag } from 'lucide-react';
+import { Menu, X, Palette, ShoppingBag, Codesandbox } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -69,7 +69,7 @@ export function Header({ isAdmin = false }: HeaderProps) {
               onClick={() => navigate(isAdmin ? '/admin' : '/')}
             >
               <div className={`p-2 rounded-lg ${isDark ? 'bg-primary' : 'bg-primary/10'}`}>
-                <ShoppingBag className={`w-6 h-6 ${isDark ? 'text-primary-foreground' : 'text-primary'}`} />
+                <Codesandbox className={`w-6 h-6 ${isDark ? 'text-primary-foreground' : 'text-primary'}`} />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                 Digital Emporium

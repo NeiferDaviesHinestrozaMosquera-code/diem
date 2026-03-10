@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Eye, FileText, Clock, Sparkles,
   ChevronLeft, ChevronRight, Download, RefreshCw, Globe,
-  CheckCircle, XCircle, AlertCircle
+  CheckCircle, XCircle, AlertCircle,
+  ArchiveIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -345,7 +346,7 @@ export function ClientInquiries() {
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="processed">Processed</SelectItem>
+            <SelectItem value="completed">Processed</SelectItem>
             <SelectItem value="error">Error</SelectItem>
             <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
@@ -365,8 +366,37 @@ export function ClientInquiries() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: 'Total Requests', value: quotes.length, icon: FileText, color: 'bg-blue-500' },
-          { label: 'Pending', value: quotes.filter(q => q.status === 'pending').length, icon: Clock, color: 'bg-yellow-500' },
-          { label: 'Processed', value: quotes.filter(q => q.status === 'processed').length, icon: CheckCircle, color: 'bg-green-500' },
+            { 
+    label: 'Pending', 
+    value: quotes.filter(q => q.status === 'pending').length, 
+    icon: Clock, 
+    color: 'bg-yellow-500' 
+  },
+  { 
+    label: 'Processing', 
+    value: quotes.filter(q => q.status === 'processing').length, 
+    icon: RefreshCw, 
+    color: 'bg-blue-500' 
+  },
+  { 
+    label: 'Completed', 
+    value: quotes.filter(q => q.status === 'completed').length, 
+    icon: CheckCircle, 
+    color: 'bg-green-500' 
+  },
+  { 
+    label: 'Error', 
+    value: quotes.filter(q => q.status === 'error').length, 
+    icon: XCircle, 
+    color: 'bg-red-500' 
+  },
+  { 
+    label: 'Archived', 
+    value: quotes.filter(q => q.status === 'archived').length, 
+    icon: ArchiveIcon, 
+    color: 'bg-gray-500' 
+  },
+
           { label: 'With AI Reports', value: quotes.filter(q => q.aiReport).length, icon: Sparkles, color: 'bg-purple-500' },
         ].map((stat, index) => (
           <motion.div
@@ -560,7 +590,7 @@ export function ClientInquiries() {
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="processed">Processed</SelectItem>
+                        <SelectItem value="completed">completed</SelectItem>
                         <SelectItem value="error">Error</SelectItem>
                         <SelectItem value="archived">Archived</SelectItem>
                       </SelectContent>
