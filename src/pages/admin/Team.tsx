@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
-  Plus, Trash2, Upload, Save, RefreshCw, GripVertical,
+  Plus, Trash2, Upload, Save, GripVertical,
   Pencil, Check, X, Linkedin, Github, Twitter,
   Eye, EyeOff, Users, Image as ImageIcon, AlertCircle,
 } from 'lucide-react';

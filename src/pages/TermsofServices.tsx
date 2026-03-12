@@ -6,7 +6,7 @@ import {
   Scale, BookOpen,
 } from 'lucide-react';
 import { getTermsMeta, getActiveTermsSections } from '@/services/index';
-import type { TermsMeta, TermsSection } from '@/services/index';
+import type { TermsMeta, TermsSection } from '@/types';
 
 // ─── Icon map ────────────────────────────────────────────────────────────────
 

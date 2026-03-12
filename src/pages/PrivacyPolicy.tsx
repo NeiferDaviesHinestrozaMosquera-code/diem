@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { getPrivacySections, getPrivacyMeta } from '@/services/Privacy';
-import type { PrivacySection, PrivacyMeta } from '@/services/Privacy';
+import type { PrivacySection, PrivacyMeta } from '@/types';
 
 // ── Icon map ──────────────────────────────────────────────────────────────────
 const ICON_MAP: Record<string, React.ElementType> = {

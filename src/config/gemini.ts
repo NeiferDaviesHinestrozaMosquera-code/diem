@@ -30,13 +30,17 @@ export interface AIReport {
 export type AIErrorCode = 'RATE_LIMITED' | 'NO_KEYS' | 'INTERNAL_ERROR' | 'INVALID_RESPONSE';
 
 export class AIReportError extends Error {
+  readonly code: AIErrorCode;
+  readonly userMessage: string;
   constructor(
     message: string,
-    public readonly code: AIErrorCode,
-    public readonly userMessage: string
+    code: AIErrorCode,
+    userMessage: string
   ) {
     super(message);
     this.name = 'AIReportError';
+    this.code = code;
+    this.userMessage = userMessage;
   }
 }
 

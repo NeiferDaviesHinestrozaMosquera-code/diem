@@ -24,8 +24,6 @@ export function Contact() {
   const address     = settings?.contactInfo?.address || settings?.contactAddress;
 
   const social         = settings?.socialLinks ?? {};
-  const whatsappRaw    = social.whatsapp;
-  const whatsappNumber = whatsappRaw;
   const whatsappHref   = `https://wa.me/${phone}`;
 
   const contactItems = [

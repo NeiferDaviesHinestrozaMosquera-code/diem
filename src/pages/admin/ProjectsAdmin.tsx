@@ -91,8 +91,6 @@ const techCategories: Record<string, { label: string; techs: string[] }> = {
   },
 };
 
-const technologies = Object.values(techCategories).flatMap(c => c.techs);
-
 const techIcons: Record<string, string> = {
   // ─── Frontend ────────────────────────────────────────────────────────────
   react:             '⚛️',

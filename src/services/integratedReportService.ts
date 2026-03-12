@@ -86,9 +86,6 @@ export class IntegratedReportService {
   ): Promise<ProcessResult> {
     const { language = 'es', generatePDF = false, uploadPDF = false } = options;
 
-    // Paso 1 — Marcar como "processing"
-    await updateQuoteRequest(quoteRequest.id, { status: 'processing' });
-
     try {
       // Paso 2 — Generar AI Report
       const rawReport = await generateAIQuoteReport(
@@ -241,8 +238,8 @@ export class IntegratedReportService {
   // ── Helpers de estado ───────────────────────────────────────────
 
   hasReport(q: QuoteRequest):    boolean          { return !!q.aiReport; }
-  isArchived(q: QuoteRequest):   boolean          { return q.status === 'archived'; }
-  isProcessing(q: QuoteRequest): boolean          { return q.status === 'processing'; }
+  isArchived(_q: QuoteRequest):  boolean          { return false; }
+  isProcessing(_q: QuoteRequest): boolean         { return false; }
   getReportLanguage(q: QuoteRequest): Language | null {
     return (q.aiReport?.language as Language) ?? null;
   }
@@ -250,7 +247,7 @@ export class IntegratedReportService {
   // ── Archivo ─────────────────────────────────────────────────────
 
   async archiveQuote(quoteId: string): Promise<void> {
-    await updateQuoteRequest(quoteId, { status: 'archived' });
+    await updateQuoteRequest(quoteId, { status: 'error' });
   }
 
   async unarchiveQuote(

@@ -2,9 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Eye, FileText, Clock, Sparkles,
-  ChevronLeft, ChevronRight, Download, RefreshCw, Globe,
+  ChevronLeft, ChevronRight, Download, RefreshCw,
   CheckCircle, XCircle, AlertCircle,
-  ArchiveIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -298,10 +297,8 @@ export function ClientInquiries() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400';
-      case 'processing': return 'bg-blue-500/20 text-blue-700 dark:text-blue-400';
       case 'processed': return 'bg-green-500/20 text-green-700 dark:text-green-400';
       case 'error': return 'bg-red-500/20 text-red-700 dark:text-red-400';
-      case 'archived': return 'bg-gray-500/20 text-gray-700 dark:text-gray-400';
       default: return 'bg-muted text-muted-foreground';
     }
   };
@@ -309,10 +306,8 @@ export function ClientInquiries() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="w-4 h-4" />;
-      case 'processing': return <RefreshCw className="w-4 h-4 animate-spin" />;
       case 'processed': return <CheckCircle className="w-4 h-4" />;
       case 'error': return <XCircle className="w-4 h-4" />;
-      case 'archived': return <FileText className="w-4 h-4" />;
       default: return <AlertCircle className="w-4 h-4" />;
     }
   };
@@ -345,10 +340,8 @@ export function ClientInquiries() {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="processing">Processing</SelectItem>
-            <SelectItem value="completed">Processed</SelectItem>
+            <SelectItem value="processed">Processed</SelectItem>
             <SelectItem value="error">Error</SelectItem>
-            <SelectItem value="archived">Archived</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -373,14 +366,8 @@ export function ClientInquiries() {
     color: 'bg-yellow-500' 
   },
   { 
-    label: 'Processing', 
-    value: quotes.filter(q => q.status === 'processing').length, 
-    icon: RefreshCw, 
-    color: 'bg-blue-500' 
-  },
-  { 
-    label: 'Completed', 
-    value: quotes.filter(q => q.status === 'completed').length, 
+    label: 'Processed', 
+    value: quotes.filter(q => q.status === 'processed').length, 
     icon: CheckCircle, 
     color: 'bg-green-500' 
   },
@@ -389,12 +376,6 @@ export function ClientInquiries() {
     value: quotes.filter(q => q.status === 'error').length, 
     icon: XCircle, 
     color: 'bg-red-500' 
-  },
-  { 
-    label: 'Archived', 
-    value: quotes.filter(q => q.status === 'archived').length, 
-    icon: ArchiveIcon, 
-    color: 'bg-gray-500' 
   },
 
           { label: 'With AI Reports', value: quotes.filter(q => q.aiReport).length, icon: Sparkles, color: 'bg-purple-500' },
@@ -589,10 +570,8 @@ export function ClientInquiries() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="processing">Processing</SelectItem>
-                        <SelectItem value="completed">completed</SelectItem>
+                        <SelectItem value="processed">Processed</SelectItem>
                         <SelectItem value="error">Error</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

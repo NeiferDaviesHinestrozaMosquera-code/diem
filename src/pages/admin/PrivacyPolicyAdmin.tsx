@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, Plus, Trash2, Edit3, Save, X,
   GripVertical, Eye, EyeOff, ChevronDown, ChevronUp,
-  Loader2, AlertCircle, CheckCircle2, RefreshCw, Settings,
+  Loader2, AlertCircle, RefreshCw, Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ import {
   updatePrivacyMeta,
   subscribeToPrivacySections,
 } from '@/services/Privacy';
-import type { PrivacySection, PrivacyMeta, NewPrivacySection, PrivacyItem } from '@/services/Privacy';
+import type { PrivacySection, PrivacyMeta, NewPrivacySection, PrivacyItem } from '@/types';
 import { toast } from 'sonner';
 
 // ── Icon options available ────────────────────────────────────────────────────

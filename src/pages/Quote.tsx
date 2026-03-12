@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Send, ArrowRight, CheckCircle, User, Mail, Building2, Phone,
-  Briefcase, MessageSquare, Sparkles, FileDown, Globe
+  Briefcase, MessageSquare, Sparkles, FileDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,8 +65,8 @@ export function Quote() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
-  const [autoGenerateAI, setAutoGenerateAI] = useState(true);
-  const [selectedLanguage, setSelectedLanguage] = useState<'es' | 'en'>('es');
+  const autoGenerateAI = true;
+  const selectedLanguage: 'es' | 'en' = 'es';
   const [selectedService, setSelectedService] = useState(preselectedService);
   const navigate = useNavigate();
   const { t } = useTranslation();

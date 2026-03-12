@@ -3,7 +3,7 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import {
   Plus, Edit, Trash2, Save, GripVertical, Eye, EyeOff,
   FileText, Loader2, Settings2, X, ChevronDown, ChevronUp,
-  ToggleLeft, ToggleRight, RefreshCw,
+  RefreshCw,
 } from 'lucide-react';
 import { Button }   from '@/components/ui/button';
 import { Input }    from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { Switch }   from '@/components/ui/switch';
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge }  from '@/components/ui/badge';
 import { toast }  from 'sonner';
 import {
@@ -21,7 +21,7 @@ import {
   getTermsSections, addTermsSection, updateTermsSection,
   deleteTermsSection, reorderTermsSections,
 } from '@/services/index';
-import type { TermsMeta, TermsSection, TermsItem, NewTermsSection } from '@/services/index';
+import type { TermsMeta, TermsSection, TermsItem, NewTermsSection } from '@/types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -106,12 +106,11 @@ function SectionDialog({
 }) {
   const [form, setForm]       = useState<NewTermsSection & { id?: string }>(initial as any);
   const [saving, setSaving]   = useState(false);
-  const [preview, setPreview] = useState(false);
 
   useEffect(() => { setForm(initial as any); }, [initial]);
 
-  const set = (key: keyof NewTermsSection, val: any) =>
-    setForm(prev => ({ ...prev, [key]: val }));
+  const set = (key: keyof NewTermsSection, val: NewTermsSection[keyof NewTermsSection]) =>
+    setForm((prev: NewTermsSection & { id?: string }) => ({ ...prev, [key]: val }));
 
   const addItem = () => set('items', [...(form.items ?? []), { label: '', desc: '' }]);
 
@@ -122,7 +121,7 @@ function SectionDialog({
   };
 
   const removeItem = (i: number) => {
-    set('items', (form.items ?? []).filter((_, idx) => idx !== i));
+    set('items', (form.items ?? []).filter((_: TermsItem, idx: number) => idx !== i));
   };
 
   const handleSave = async () => {
@@ -315,14 +314,14 @@ function MetaDialog({
             <Label>Page title</Label>
             <Input
               value={form.page_title ?? ''}
-              onChange={e => setForm(p => ({ ...p, page_title: e.target.value }))}
+              onChange={e => setForm((p: Partial<TermsMeta>) => ({ ...p, page_title: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
             <Label>Page subtitle</Label>
             <Textarea
               value={form.page_subtitle ?? ''}
-              onChange={e => setForm(p => ({ ...p, page_subtitle: e.target.value }))}
+              onChange={e => setForm((p: Partial<TermsMeta>) => ({ ...p, page_subtitle: e.target.value }))}
               rows={2}
             />
           </div>
@@ -331,7 +330,7 @@ function MetaDialog({
             <Input
               type="date"
               value={form.last_updated ?? ''}
-              onChange={e => setForm(p => ({ ...p, last_updated: e.target.value }))}
+              onChange={e => setForm((p: Partial<TermsMeta>) => ({ ...p, last_updated: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
@@ -339,7 +338,7 @@ function MetaDialog({
             <Input
               type="email"
               value={form.contact_email ?? ''}
-              onChange={e => setForm(p => ({ ...p, contact_email: e.target.value }))}
+              onChange={e => setForm((p: Partial<TermsMeta>) => ({ ...p, contact_email: e.target.value }))}
               placeholder="legal@example.com"
             />
           </div>
@@ -485,7 +484,6 @@ export function TermsAdmin() {
   const [meta, setMeta]           = useState<TermsMeta | null>(null);
   const [sections, setSections]   = useState<TermsSection[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
 
   const [sectionDialog, setSectionDialog] = useState<{
     open: boolean;

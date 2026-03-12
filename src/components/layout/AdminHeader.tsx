@@ -52,7 +52,7 @@ const navItemVariants = {
     transition: {
       delay: 0.3 + i * 0.07,
       duration: 0.4,
-      ease: 'easeOut'
+      ease: 'easeOut' as const
     }
   })
 };
@@ -63,7 +63,7 @@ const logoVariants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { delay: 0.15, duration: 0.5, ease: 'easeOut' }
+    transition: { delay: 0.15, duration: 0.5, ease: 'easeOut' as const }
   }
 };
 
@@ -73,7 +73,7 @@ const userInfoVariants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { delay: 0.2, duration: 0.5, ease: 'easeOut' }
+    transition: { delay: 0.2, duration: 0.5, ease: 'easeOut' as const }
   }
 };
 
@@ -90,7 +90,7 @@ const mobileMenuVariants = {
     opacity: 0,
     height: 0,
     scaleY: 0.95,
-    transition: { duration: 0.2, ease: 'easeIn' }
+    transition: { duration: 0.2, ease: 'easeIn' as const }
   }
 };
 
@@ -99,7 +99,7 @@ const mobileItemVariants = {
   visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { delay: i * 0.06, duration: 0.3, ease: 'easeOut' }
+    transition: { delay: i * 0.06, duration: 0.3, ease: 'easeOut' as const }
   })
 };
 
@@ -372,7 +372,7 @@ export function AdminHeader() {
       <motion.div
         initial={{ scaleX: 0, opacity: 0 }}
         animate={{ scaleX: 1, opacity: 1 }}
-        transition={{ delay: 0.8, duration: 1, ease: 'easeOut' }}
+        transition={{ delay: 0.8, duration: 1, ease: 'easeOut' as const }}
         className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
       />
     </motion.header>
