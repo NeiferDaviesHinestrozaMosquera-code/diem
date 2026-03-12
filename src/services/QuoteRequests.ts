@@ -3,7 +3,7 @@ import type { AIReport, QuoteRequest } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type QuoteStatus = 'pending' | 'processing' | 'completed' | 'error' | 'archived';
+export type QuoteStatus = 'pending' | 'processed' | 'error';
 
 export interface QuoteRequestUpdate {
   aiReport?: AIReport;
@@ -103,9 +103,8 @@ export const getQuoteRequestStats = async () => {
   return {
     total:     all.length,
     pending:   all.filter(q => q.status === 'pending').length,
-    processed: all.filter(q => q.status === 'completed').length,
+    processed: all.filter(q => q.status === 'processed').length,
     error:     all.filter(q => q.status === 'error').length,
-    archived:  all.filter(q => q.status === 'archived').length,
   };
 };
 
@@ -182,7 +181,7 @@ export const deleteQuoteRequest = async (id: string): Promise<void> => {
 };
 
 export const archiveQuoteRequest = (id: string): Promise<QuoteRequest> =>
-  updateQuoteRequest(id, { status: 'archived' });
+  updateQuoteRequest(id, { status: 'error' });
 
 // ─── Helpers públicos ────────────────────────────────────────────────────────
 

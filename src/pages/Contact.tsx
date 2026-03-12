@@ -23,7 +23,6 @@ export function Contact() {
   const phone       = settings?.contactInfo?.phone   || settings?.contactPhone;
   const address     = settings?.contactInfo?.address || settings?.contactAddress;
 
-  const social         = settings?.socialLinks ?? {};
   const whatsappHref   = `https://wa.me/${phone}`;
 
   const contactItems = [

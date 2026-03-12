@@ -186,6 +186,8 @@ export interface PrivacyMeta {
   updated_at:    string;
 }
 
+export type NewPrivacySection = Omit<PrivacySection, 'id' | 'created_at' | 'updated_at'>;
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface TermsItem {

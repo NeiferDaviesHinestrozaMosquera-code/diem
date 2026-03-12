@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Eye, FileText, Clock, Sparkles,
-  ChevronLeft, ChevronRight, Download, RefreshCw,
+  ChevronLeft, ChevronRight, Download, RefreshCw, Globe,
   CheckCircle, XCircle, AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

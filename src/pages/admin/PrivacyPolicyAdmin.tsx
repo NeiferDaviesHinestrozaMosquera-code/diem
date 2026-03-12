@@ -68,16 +68,16 @@ function SectionForm({
   const [form, setForm] = useState<NewPrivacySection>(initial);
 
   const setField = <K extends keyof NewPrivacySection>(k: K, v: NewPrivacySection[K]) =>
-    setForm(prev => ({ ...prev, [k]: v }));
+    setForm((prev: NewPrivacySection) => ({ ...prev, [k]: v }));
 
   const addItem = () =>
     setField('items', [...form.items, { ...BLANK_ITEM }]);
 
   const removeItem = (i: number) =>
-    setField('items', form.items.filter((_, idx) => idx !== i));
+    setField('items', form.items.filter((_: PrivacyItem, idx: number) => idx !== i));
 
   const updateItem = (i: number, key: keyof PrivacyItem, val: string) =>
-    setField('items', form.items.map((item, idx) =>
+    setField('items', form.items.map((item: PrivacyItem, idx: number) =>
       idx === i ? { ...item, [key]: val } : item
     ));
 
@@ -152,7 +152,7 @@ function SectionForm({
         </div>
 
         <div className="space-y-2">
-          {form.items.map((item, i) => (
+          {form.items.map((item: PrivacyItem, i: number) => (
             <div key={i} className="flex gap-2 p-3 rounded-lg bg-muted/30 border border-border">
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <Input
