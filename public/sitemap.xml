@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- ── Página principal ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- ── Servicios ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/services</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- ── Proyectos ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/projects</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ── Nosotros / Equipo ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/about</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ── Contacto ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/contact</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ── Cotización ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/quote</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- ── Política de privacidad ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/privacy</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- ── Términos de servicio ── -->
+  <url>
+    <loc>https://newdigitalemporium.vercel.app/terms</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
