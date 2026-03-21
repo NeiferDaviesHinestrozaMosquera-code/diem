@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
@@ -64,6 +64,9 @@ function AppContent() {
           <Route path="/admin/privacy" element={<ProtectedRoute><PrivacyPolicyAdmin /></ProtectedRoute>} />
           <Route path="/admin/team" element={<ProtectedRoute><TeamAdmin /></ProtectedRoute>} />
           <Route path="/admin/terms" element={<ProtectedRoute><TermsAdmin /></ProtectedRoute>} />
+
+          {/* Catch-all → redirige a home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
