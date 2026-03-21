@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Turnstile } from '@marsidev/react-turnstile';
 import { addQuoteRequest } from '@/services/QuoteRequests';
 import { integratedReportService } from '@/services/integratedReportService';
 import { toast } from 'sonner';
@@ -65,6 +66,7 @@ export function Quote() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const autoGenerateAI = true;
   const selectedLanguage: 'es' | 'en' = 'es';
   const [selectedService, setSelectedService] = useState(preselectedService);
@@ -84,6 +86,11 @@ export function Quote() {
   });
 
   const onSubmit = async (data: QuoteFormData) => {
+    if (!turnstileToken) {
+      toast.error('Por favor, verifica que no eres un robot. / Please verify that you are human.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       // Paso 1: Crear la solicitud de cotización
@@ -458,6 +465,26 @@ export function Quote() {
                 {errors.projectDetails && (
                   <p className="text-red-500 text-sm mt-1">{errors.projectDetails.message}</p>
                 )}
+              </motion.div>
+
+              {/* Turnstile */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6 }}
+                className="flex justify-center"
+              >
+                <Turnstile
+                  siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+                  options={{ theme: 'auto' }}
+                  onSuccess={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken(null)}
+                  onError={() => {
+                    setTurnstileToken(null);
+                    toast.error('Error cargando el captcha. / Captcha loading error.');
+                  }}
+                />
               </motion.div>
 
               {/* Submit Button */}
