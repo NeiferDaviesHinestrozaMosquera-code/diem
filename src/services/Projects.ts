@@ -3,14 +3,14 @@ import type { Project } from "@/types";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function mapProject(item: any): Project {
+function mapProject(item: Record<string, unknown>): Project {
   return {
     ...item,
     longDescription: item.long_description,
     completionDate:  item.completion_date,
     projectUrl:      item.project_url,
-    createdAt:       new Date(item.created_at),
-    updatedAt:       new Date(item.updated_at),
+    createdAt:       new Date(item.created_at as string),
+    updatedAt:       new Date(item.updated_at as string),
   } as Project;
 }
 

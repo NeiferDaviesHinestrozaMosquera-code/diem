@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useTranslation } from 'react-i18next';
 import { getServices, subscribeToServices } from '@/services/Services';
 import type { Service } from '@/types';
+import { TextReveal } from '@/components/ui/TextReveal';
 
 // Mapeo de nombres de iconos a componentes de Lucide
 const iconMap: Record<string, any> = {
@@ -76,11 +77,12 @@ export function Services() {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 flex justify-center"
           >
-            <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              {t('servicesTitle')}
-            </span>
+            <TextReveal 
+              text={t('servicesTitle') || ''} 
+              className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent inline-flex" 
+            />
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -132,9 +134,9 @@ export function Services() {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: index * 0.05 }}
-                      whileHover={{ y: -10 }}
-                      className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 cursor-pointer"
+                      transition={{ delay: index * 0.05, type: 'spring', stiffness: 300, damping: 20 }}
+                      whileHover={{ y: -12, scale: 1.02, rotateX: 2 }}
+                      className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10"
                       onClick={() => setSelectedService(service)}
                     >
                       {/* Image */}

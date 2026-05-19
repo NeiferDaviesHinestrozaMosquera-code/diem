@@ -3,11 +3,11 @@ import type { Testimonial } from "@/types";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function mapTestimonial(item: any): Testimonial {
+function mapTestimonial(item: Record<string, unknown>): Testimonial {
   return {
     ...item,
     clientName: item.client_name,
-    createdAt:  new Date(item.created_at),
+    createdAt:  new Date(item.created_at as string),
   } as Testimonial;
 }
 

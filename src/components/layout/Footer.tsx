@@ -1,8 +1,9 @@
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import {
   ShoppingBag, Mail, Phone, MapPin,
   Github, Linkedin, Twitter, Facebook, Instagram,
-  Youtube, MessageCircle,
+  Youtube, MessageCircle, ArrowUp,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -19,11 +20,52 @@ const DEFAULTS = {
   whatsapp:   '15551234567',
 };
 
+// Stagger container variant
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const columnVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+  },
+};
+
+const linkHoverVariants = {
+  rest: { x: 0 },
+  hover: { x: 6, transition: { type: 'spring' as const, stiffness: 300, damping: 20 } },
+};
+
 export function Footer() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const { settings, loading } = useSiteSettings();
+
+  // Scroll-to-top visibility
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Parallax for footer background
+  const { scrollYProgress } = useScroll();
+  const backgroundY = useTransform(scrollYProgress, [0.8, 1], [30, 0]);
+  const backgroundOpacity = useTransform(scrollYProgress, [0.85, 1], [0, 0.08]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -55,23 +97,41 @@ export function Footer() {
 
   return (
     <motion.footer
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      className="bg-gradient-to-b from-background to-muted/30 border-t border-border"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-50px' }}
+      variants={containerVariants}
+      className="bg-gradient-to-b from-background to-muted/30 border-t border-border relative overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Animated background decoration */}
+      <motion.div
+        style={{ y: backgroundY, opacity: backgroundOpacity }}
+        className="absolute inset-0 pointer-events-none"
+      >
+        <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] bg-primary rounded-full blur-[150px]" />
+        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-blue-600 rounded-full blur-[150px]" />
+      </motion.div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
           {/* Brand */}
-          <div className="space-y-4">
+          <motion.div variants={columnVariants} className="space-y-4">
             <div className="flex items-center gap-2">
               {settings?.logo ? (
-                <img src={settings.logo} alt={siteName} className="h-8 w-auto object-contain" />
+                <motion.img
+                  src={settings.logo}
+                  alt={siteName}
+                  className="h-8 w-auto object-contain"
+                  whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
+                />
               ) : (
-                <div className={`p-2 rounded-lg ${isDark ? 'bg-primary' : 'bg-primary/10'}`}>
+                <motion.div
+                  className={`p-2 rounded-lg ${isDark ? 'bg-primary' : 'bg-primary/10'}`}
+                  whileHover={{ rotate: 360, transition: { duration: 0.6 } }}
+                >
                   <ShoppingBag className={`w-6 h-6 ${isDark ? 'text-primary-foreground' : 'text-primary'}`} />
-                </div>
+                </motion.div>
               )}
               {loading ? (
                 <span className="block h-6 w-36 animate-pulse rounded bg-muted" />
@@ -90,10 +150,15 @@ export function Footer() {
 
             {socialIcons.length > 0 && (
               <div className="flex flex-wrap gap-3">
-                {socialIcons.map(({ key, Icon, href }) => (
+                {socialIcons.map(({ key, Icon, href }, index) => (
                   <motion.a
                     key={key}
-                    whileHover={{ scale: 1.1, y: -2 }}
+                    initial={{ opacity: 0, scale: 0 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.4 + index * 0.08, type: 'spring', stiffness: 200 }}
+                    whileHover={{ scale: 1.2, y: -4, rotate: 5 }}
+                    whileTap={{ scale: 0.9 }}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -105,10 +170,10 @@ export function Footer() {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div>
+          <motion.div variants={columnVariants}>
             <h4 className="font-semibold mb-4">{t('home')}</h4>
             <ul className="space-y-2">
               {[
@@ -118,31 +183,49 @@ export function Footer() {
                 { label: t('contact'),  path: '/contact'  },
               ].map(({ label, path }) => (
                 <li key={path}>
-                  <button
+                  <motion.button
+                    variants={linkHoverVariants}
+                    initial="rest"
+                    whileHover="hover"
                     onClick={() => handleNavigate(path)}
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                    className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center gap-1"
                   >
+                    <motion.span
+                      className="inline-block w-0 overflow-hidden"
+                      variants={{
+                        rest: { width: 0, opacity: 0 },
+                        hover: { width: 'auto', opacity: 1, transition: { duration: 0.2 } },
+                      }}
+                    >
+                      →
+                    </motion.span>
                     {label}
-                  </button>
+                  </motion.button>
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Services */}
-          <div>
+          <motion.div variants={columnVariants}>
             <h4 className="font-semibold mb-4">{t('services')}</h4>
             <ul className="space-y-2">
-              {['Web Development', 'Mobile Apps', 'AI & Bot Solutions', 'Digital Marketing'].map(s => (
-                <li key={s}>
+              {['Web Development', 'Mobile Apps', 'AI & Bot Solutions', 'Digital Marketing'].map((s, i) => (
+                <motion.li
+                  key={s}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 + i * 0.07 }}
+                >
                   <span className="text-muted-foreground text-sm">{s}</span>
-                </li>
+                </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Contact Info */}
-          <div>
+          <motion.div variants={columnVariants}>
             <h4 className="font-semibold mb-4">{t('contact')}</h4>
             {loading ? (
               <div className="space-y-3">
@@ -155,29 +238,47 @@ export function Footer() {
               </div>
             ) : (
               <ul className="space-y-3">
-                <li className="flex items-center gap-3">
-                  <Mail className="w-4 h-4 text-primary shrink-0" />
-                  <a href={`mailto:${email}`} className="text-muted-foreground text-sm hover:text-primary transition-colors">
-                    {email}
-                  </a>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-primary shrink-0" />
-                  <a href={`tel:${phone}`} className="text-muted-foreground text-sm hover:text-primary transition-colors">
-                    {phone}
-                  </a>
-                </li>
-                <li className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                  <span className="text-muted-foreground text-sm whitespace-pre-line">{address}</span>
-                </li>
+                {[
+                  { Icon: Mail,   content: email,   href: `mailto:${email}` },
+                  { Icon: Phone,  content: phone,   href: `tel:${phone}` },
+                  { Icon: MapPin, content: address, href: undefined },
+                ].map(({ Icon, content, href }, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + i * 0.1 }}
+                    className="flex items-start gap-3 group"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.2, rotate: 10 }}
+                      className="mt-0.5 shrink-0"
+                    >
+                      <Icon className="w-4 h-4 text-primary" />
+                    </motion.div>
+                    {href ? (
+                      <a href={href} className="text-muted-foreground text-sm hover:text-primary transition-colors">
+                        {content}
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground text-sm whitespace-pre-line">{content}</span>
+                    )}
+                  </motion.li>
+                ))}
               </ul>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.5 }}
+          className="mt-8 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4"
+        >
           <p className="text-muted-foreground text-sm">
             {loading
               ? <span className="block h-4 w-64 animate-pulse rounded bg-muted" />
@@ -185,20 +286,23 @@ export function Footer() {
           </p>
           <div className="flex gap-4">
             {/* ✅ CONECTADO: navega a /privacy */}
-            <button
+            <motion.button
+              whileHover={{ x: 3 }}
               onClick={() => handleNavigate('/privacy')}
               className="text-muted-foreground hover:text-primary transition-colors text-sm"
             >
               Privacy Policy
-            </button>
+            </motion.button>
 
-            <button 
-            onClick={() => handleNavigate('/terms')}
-            className="text-muted-foreground hover:text-primary transition-colors text-sm">
+            <motion.button
+              whileHover={{ x: 3 }}
+              onClick={() => handleNavigate('/terms')}
+              className="text-muted-foreground hover:text-primary transition-colors text-sm"
+            >
               Terms of Service
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* WhatsApp Float Button */}
@@ -208,12 +312,38 @@ export function Footer() {
         rel="noopener noreferrer"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        whileHover={{ scale: 1.1 }}
+        whileHover={{ scale: 1.15 }}
+        whileTap={{ scale: 0.9 }}
         className="fixed bottom-6 right-6 z-50 p-4 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition-colors"
         aria-label="Chat on WhatsApp"
       >
-        <MessageCircle className="w-6 h-6" />
+        {/* Pulse ring */}
+        <motion.span
+          className="absolute inset-0 rounded-full bg-green-500"
+          animate={{ scale: [1, 1.4, 1.4], opacity: [0.5, 0, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
+        />
+        <MessageCircle className="w-6 h-6 relative z-10" />
       </motion.a>
+
+      {/* Scroll-to-Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            whileHover={{ scale: 1.15, y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-24 z-50 p-3 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors"
+            aria-label="Scroll to top"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </motion.footer>
   );
 }

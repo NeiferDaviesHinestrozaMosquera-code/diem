@@ -3,12 +3,12 @@ import type { Service } from '@/types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function mapService(item: any): Service {
+function mapService(item: Record<string, unknown>): Service {
   return {
     ...item,
     longDescription: item.long_description,
-    createdAt: new Date(item.created_at),
-    updatedAt: new Date(item.updated_at),
+    createdAt: new Date(item.created_at as string),
+    updatedAt: new Date(item.updated_at as string),
   } as Service;
 }
 

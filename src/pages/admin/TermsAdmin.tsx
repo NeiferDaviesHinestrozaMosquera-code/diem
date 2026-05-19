@@ -104,10 +104,10 @@ function SectionDialog({
   initial: NewTermsSection | TermsSection;
   onSave:  (data: NewTermsSection) => Promise<void>;
 }) {
-  const [form, setForm]       = useState<NewTermsSection & { id?: string }>(initial as any);
+  const [form, setForm]       = useState<NewTermsSection & { id?: string }>(initial as NewTermsSection & { id?: string });
   const [saving, setSaving]   = useState(false);
 
-  useEffect(() => { setForm(initial as any); }, [initial]);
+  useEffect(() => { setForm(initial as NewTermsSection & { id?: string }); }, [initial]);
 
   const set = (key: keyof NewTermsSection, val: NewTermsSection[keyof NewTermsSection]) =>
     setForm((prev: NewTermsSection & { id?: string }) => ({ ...prev, [key]: val }));

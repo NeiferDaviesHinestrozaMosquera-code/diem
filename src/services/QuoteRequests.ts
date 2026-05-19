@@ -13,7 +13,7 @@ export interface QuoteRequestUpdate {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function mapQuote(item: any): QuoteRequest {
+function mapQuote(item: Record<string, unknown>): QuoteRequest {
   return {
     id:             item.id,
     fullName:       item.full_name,
@@ -25,8 +25,8 @@ function mapQuote(item: any): QuoteRequest {
     status:         item.status,
     aiReport:       item.ai_report,
     pdfUrl:         item.pdf_url,
-    createdAt:      new Date(item.created_at),
-    updatedAt:      new Date(item.updated_at),
+    createdAt:      new Date(item.created_at as string),
+    updatedAt:      new Date(item.updated_at as string),
   } as QuoteRequest;
 }
 

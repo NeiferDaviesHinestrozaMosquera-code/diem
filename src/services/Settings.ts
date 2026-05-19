@@ -29,7 +29,7 @@ const PUBLIC_SETTINGS_COLUMNS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function mapSiteSettings(data: any): SiteSettings {
+function mapSiteSettings(data: Record<string, unknown>): SiteSettings {
   // contact_info JSONB tiene prioridad; si falta, se construye desde columnas individuales.
   const contactInfo: SiteSettings['contactInfo'] = data.contact_info ?? {
     email:   data.contact_email   ?? '',

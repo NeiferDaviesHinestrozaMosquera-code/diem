@@ -1,0 +1,17 @@
+# robots.txt — New Digital Emporium
+# https://newdigitalemporium.vercel.app
+
+User-agent: *
+Allow: /
+
+# Bloquear páginas de admin (nunca indexar)
+Disallow: /admin
+Disallow: /admin/
+Disallow: /admin/*
+
+# Bloquear rutas de API si existen
+Disallow: /api/
+Disallow: /_vercel/
+
+# Sitemap
+Sitemap: https://newdigitalemporium.vercel.app/sitemap.xml

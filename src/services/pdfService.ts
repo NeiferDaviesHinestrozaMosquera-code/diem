@@ -1,12 +1,12 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import type jsPDFType from 'jspdf';
+import type autoTableType from 'jspdf-autotable';
 import type { QuoteRequest } from '@/types';
 import { supabase } from '@/lib/Client';
 
 // Extender el tipo jsPDF para incluir autoTable
 declare module 'jspdf' {
   interface jsPDF {
-    autoTable: typeof autoTable;
+    autoTable: typeof autoTableType;
     lastAutoTable: {
       finalY: number;
     };
@@ -29,16 +29,19 @@ export class PDFService {
   /**
    * Genera un PDF del reporte AI en el idioma especificado
    */
-  generateReportPDF(
+  async generateReportPDF(
     quoteRequest: QuoteRequest,
     language: 'es' | 'en' = 'es'
-  ): jsPDF {
+  ): Promise<jsPDFType> {
     const isSpanish = language === 'es';
     const report = quoteRequest.aiReport;
 
     if (!report) {
       throw new Error(isSpanish ? 'No hay reporte AI disponible' : 'No AI report available');
     }
+
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.width;
@@ -242,11 +245,12 @@ export class PDFService {
         0: { fontStyle: 'bold' },
         1: { halign: 'right' },
       },
-      didParseCell: function (data: any) {
-        if (data.row.index === costData.length - 1) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = primaryColor;
-          data.cell.styles.textColor = 255;
+      didParseCell: function (data: Record<string, unknown>) {
+        if ((data.row as Record<string, unknown>).index === costData.length - 1) {
+          const cell = data.cell as { styles: Record<string, unknown> };
+          cell.styles.fontStyle = 'bold';
+          cell.styles.fillColor = primaryColor;
+          cell.styles.textColor = 255;
         }
       },
     });
@@ -374,11 +378,11 @@ export class PDFService {
   /**
    * Descarga el PDF del reporte
    */
-  downloadReportPDF(
+  async downloadReportPDF(
     quoteRequest: QuoteRequest,
     language: 'es' | 'en' = 'es'
-  ): void {
-    const doc = this.generateReportPDF(quoteRequest, language);
+  ): Promise<void> {
+    const doc = await this.generateReportPDF(quoteRequest, language);
     const fileName = `quote-report-${quoteRequest.fullName.replace(/\s+/g, '-').toLowerCase()}-${language}.pdf`;
     doc.save(fileName);
   }
@@ -386,11 +390,11 @@ export class PDFService {
   /**
    * Obtiene el PDF como blob para previsualización
    */
-  getReportPDFBlob(
+  async getReportPDFBlob(
     quoteRequest: QuoteRequest,
     language: 'es' | 'en' = 'es'
-  ): Blob {
-    const doc = this.generateReportPDF(quoteRequest, language);
+  ): Promise<Blob> {
+    const doc = await this.generateReportPDF(quoteRequest, language);
     return doc.output('blob');
   }
 
@@ -402,7 +406,7 @@ export class PDFService {
     language: 'es' | 'en' = 'es'
   ): Promise<string> {
     try {
-      const pdfBlob = this.getReportPDFBlob(quoteRequest, language);
+      const pdfBlob = await this.getReportPDFBlob(quoteRequest, language);
       const fileName = `quote-report-${quoteRequest.id}-${language}-${Date.now()}.pdf`;
       const filePath = `reports/${fileName}`;
 
@@ -517,17 +521,17 @@ export class PDFService {
 export const pdfService = PDFService.getInstance();
 
 // Funciones helper
-export function downloadAIReportPDF(
+export async function downloadAIReportPDF(
   quoteRequest: QuoteRequest,
   language: 'es' | 'en' = 'es'
-): void {
-  pdfService.downloadReportPDF(quoteRequest, language);
+): Promise<void> {
+  return pdfService.downloadReportPDF(quoteRequest, language);
 }
 
-export function getAIReportPDFBlob(
+export async function getAIReportPDFBlob(
   quoteRequest: QuoteRequest,
   language: 'es' | 'en' = 'es'
-): Blob {
+): Promise<Blob> {
   return pdfService.getReportPDFBlob(quoteRequest, language);
 }
 

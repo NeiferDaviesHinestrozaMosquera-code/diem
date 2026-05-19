@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { useCountUp } from '@/hooks/useCountUp';
+import { TextReveal } from '@/components/ui/TextReveal';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 import {
   ChevronLeft,
   ChevronRight,
@@ -135,6 +138,23 @@ const valueProps = [
   },
 ];
 
+// ─── Animated stat component ──────────────────────────────────────────────────
+function AnimatedStat({ target, suffix, label, index }: { target: number; suffix: string; label: string; index: number }) {
+  const { ref, display } = useCountUp({ target, suffix, duration: 2.5 });
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.5 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1, type: 'spring', stiffness: 100 }}
+      className="text-center"
+    >
+      <div ref={ref as React.Ref<HTMLDivElement>} className="text-4xl md:text-5xl font-bold mb-2">{display}</div>
+      <div className="text-white/80">{label}</div>
+    </motion.div>
+  );
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -161,6 +181,9 @@ export function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate     = useNavigate();
   const { t }        = useTranslation();
+
+  const { scrollY } = useScroll();
+  const yBg = useTransform(scrollY, [0, 1000], [0, 250]);
 
   // ── Fetch settings & testimonials ──────────────────────────────────────────
   useEffect(() => {
@@ -246,12 +269,13 @@ export function Home() {
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             className="absolute inset-0"
           >
-            <div
+            <motion.div
               className="absolute inset-0 bg-cover bg-center"
               style={{
                 backgroundImage: `url(${slides[currentSlide].image})`,
                 transform: `translate(${mousePosition.x}px, ${mousePosition.y}px) scale(1.1)`,
                 transition: 'transform 0.3s ease-out',
+                y: yBg
               }}
             />
             <div className={`absolute inset-0 bg-gradient-to-r ${slides[currentSlide].gradient}`} />
@@ -278,33 +302,39 @@ export function Home() {
                 >
                   {slides[currentSlide].subtitle}
                 </motion.span>
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                  {slides[currentSlide].title}
-                </h1>
-                <p className="text-lg text-white/80 mb-8 max-w-lg">
+                <TextReveal 
+                  text={slides[currentSlide].title} 
+                  className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight" 
+                />
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-lg text-white/80 mb-8 max-w-lg"
+                >
                   {slides[currentSlide].description}
-                </p>
+                </motion.p>
                 <div className="flex flex-wrap gap-4">
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <MagneticButton>
                     <Button
                       size="lg"
                       onClick={() => navigate('/quote')}
-                      className="bg-white text-primary hover:bg-white/90"
+                      className="bg-white text-primary hover:bg-white/90 shadow-xl"
                     >
                       {t('getStarted')}
                       <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
-                  </motion.div>
-                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  </MagneticButton>
+                  <MagneticButton>
                     <Button
                       size="lg"
                       variant="outline"
                       onClick={() => navigate('/services')}
-                      className="border-white/50 text-black hover:bg-black/10"
+                      className="border-white text-white hover:bg-white/10"
                     >
                       {t('learnMore')}
                     </Button>
-                  </motion.div>
+                  </MagneticButton>
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -504,28 +534,26 @@ export function Home() {
       ═══════════════════════════════════════════════════ */}
       <section className="py-20 bg-gradient-to-r from-primary to-blue-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl" />
+          <motion.div
+            animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{ x: [0, -30, 0], y: [0, 20, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"
+          />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: '150+', label: 'Projects Completed' },
-              { value: '50+',  label: 'Happy Clients' },
-              { value: '10+',  label: 'Years Experience' },
-              { value: '24/7', label: 'Support Available' },
+              { target: 150, suffix: '+', label: 'Projects Completed' },
+              { target: 50,  suffix: '+', label: 'Happy Clients' },
+              { target: 10,  suffix: '+', label: 'Years Experience' },
+              { target: 24,  suffix: '/7', label: 'Support Available' },
             ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.5 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center"
-              >
-                <div className="text-4xl md:text-5xl font-bold mb-2">{stat.value}</div>
-                <div className="text-white/80">{stat.label}</div>
-              </motion.div>
+              <AnimatedStat key={stat.label} target={stat.target} suffix={stat.suffix} label={stat.label} index={index} />
             ))}
           </div>
         </div>

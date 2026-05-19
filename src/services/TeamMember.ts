@@ -3,7 +3,7 @@ import type { TeamMember } from "@/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function mapTeamMember(item: any): TeamMember {
+function mapTeamMember(item: Record<string, unknown>): TeamMember {
   return {
     id:          item.id,
     name:        item.name        ?? '',
@@ -15,8 +15,8 @@ function mapTeamMember(item: any): TeamMember {
     twitterUrl:  item.twitter_url ?? '',
     order:       item.order       ?? 0,
     isActive:    item.is_active   ?? true,
-    createdAt:   new Date(item.created_at),
-    updatedAt:   new Date(item.updated_at),
+    createdAt:   new Date(item.created_at as string),
+    updatedAt:   new Date(item.updated_at as string),
   };
 }
 
