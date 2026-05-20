@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { useCountUp } from '@/hooks/useCountUp';
 import { TextReveal } from '@/components/ui/TextReveal';
 import { MagneticButton } from '@/components/ui/MagneticButton';
+import { ScrollReveal3D } from '@/components/ui/ScrollReveal3D';
 import {
   ChevronLeft,
   ChevronRight,
@@ -412,21 +413,22 @@ export function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="group p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300"
-              >
-                <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
-                  <feature.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </motion.div>
+              <ScrollReveal3D key={feature.title} preset="flipUp">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -10, scale: 1.02 }}
+                  className="group p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300"
+                >
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:scale-110 transition-all duration-300">
+                    <feature.icon className="w-7 h-7 text-primary group-hover:text-primary-foreground transition-colors" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
+                </motion.div>
+              </ScrollReveal3D>
             ))}
           </div>
         </div>
@@ -467,43 +469,44 @@ export function Home() {
           {/* Cards grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {valueProps.map((vp, index) => (
-              <motion.div
-                key={vp.title}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.12, duration: 0.5 }}
-                whileHover={{ y: -6 }}
-                className="group relative p-8 rounded-3xl bg-card border border-border hover:border-transparent transition-all duration-300 overflow-hidden"
-              >
-                {/* Hover gradient border */}
-                <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${vp.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                <div className={`absolute inset-[1px] rounded-3xl bg-card group-hover:bg-card/95 transition-colors duration-300`} />
+              <ScrollReveal3D key={vp.title} preset={index % 2 === 0 ? 'tiltLeft' : 'tiltRight'}>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.12, duration: 0.5 }}
+                  whileHover={{ y: -6 }}
+                  className="group relative p-8 rounded-3xl bg-card border border-border hover:border-transparent transition-all duration-300 overflow-hidden"
+                >
+                  {/* Hover gradient border */}
+                  <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${vp.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                  <div className={`absolute inset-[1px] rounded-3xl bg-card group-hover:bg-card/95 transition-colors duration-300`} />
 
-                <div className="relative z-10 flex gap-6">
-                  {/* Icon */}
-                  <div className={`shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${vp.color} flex items-center justify-center shadow-lg`}>
-                    <vp.icon className="w-7 h-7 text-white" />
-                  </div>
+                  <div className="relative z-10 flex gap-6">
+                    {/* Icon */}
+                    <div className={`shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${vp.color} flex items-center justify-center shadow-lg`}>
+                      <vp.icon className="w-7 h-7 text-white" />
+                    </div>
 
-                  {/* Content */}
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">{vp.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      {vp.description}
-                    </p>
-                    {/* Stat badge */}
-                    <div className="flex items-baseline gap-2">
-                      <span className={`text-3xl font-black bg-gradient-to-r ${vp.color} bg-clip-text text-transparent`}>
-                        {vp.stat}
-                      </span>
-                      <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                        {vp.statLabel}
-                      </span>
+                    {/* Content */}
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold mb-2">{vp.title}</h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                        {vp.description}
+                      </p>
+                      {/* Stat badge */}
+                      <div className="flex items-baseline gap-2">
+                        <span className={`text-3xl font-black bg-gradient-to-r ${vp.color} bg-clip-text text-transparent`}>
+                          {vp.stat}
+                        </span>
+                        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+                          {vp.statLabel}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </ScrollReveal3D>
             ))}
           </div>
 
@@ -546,16 +549,18 @@ export function Home() {
           />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { target: 150, suffix: '+', label: 'Projects Completed' },
-              { target: 50,  suffix: '+', label: 'Happy Clients' },
-              { target: 10,  suffix: '+', label: 'Years Experience' },
-              { target: 24,  suffix: '/7', label: 'Support Available' },
-            ].map((stat, index) => (
-              <AnimatedStat key={stat.label} target={stat.target} suffix={stat.suffix} label={stat.label} index={index} />
-            ))}
-          </div>
+          <ScrollReveal3D preset="zoomTwist">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {[
+                { target: 150, suffix: '+', label: 'Projects Completed' },
+                { target: 50,  suffix: '+', label: 'Happy Clients' },
+                { target: 10,  suffix: '+', label: 'Years Experience' },
+                { target: 24,  suffix: '/7', label: 'Support Available' },
+              ].map((stat, index) => (
+                <AnimatedStat key={stat.label} target={stat.target} suffix={stat.suffix} label={stat.label} index={index} />
+              ))}
+            </div>
+          </ScrollReveal3D>
         </div>
       </section>
 

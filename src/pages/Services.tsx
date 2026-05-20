@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { getServices, subscribeToServices } from '@/services/Services';
 import type { Service } from '@/types';
 import { TextReveal } from '@/components/ui/TextReveal';
+import { ScrollReveal3D } from '@/components/ui/ScrollReveal3D';
 
 // Mapeo de nombres de iconos a componentes de Lucide
 const iconMap: Record<string, any> = {
@@ -129,16 +130,16 @@ export function Services() {
                   const IconComponent = iconMap[service.icon] || Code;
 
                   return (
-                    <motion.div
-                      key={service.id}
-                      initial={{ opacity: 0, y: 50 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.05, type: 'spring', stiffness: 300, damping: 20 }}
-                      whileHover={{ y: -12, scale: 1.02, rotateX: 2 }}
-                      className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10"
-                      onClick={() => setSelectedService(service)}
-                    >
+                    <ScrollReveal3D key={service.id} preset={index % 3 === 0 ? 'flipUp' : index % 3 === 1 ? 'rotateIn' : 'tiltLeft'}>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: index * 0.05, type: 'spring', stiffness: 300, damping: 20 }}
+                        whileHover={{ y: -12, scale: 1.02, rotateX: 2 }}
+                        className="group relative overflow-hidden rounded-2xl bg-card border border-border hover:border-primary/50 transition-colors duration-300 cursor-pointer shadow-sm hover:shadow-xl hover:shadow-primary/10"
+                        onClick={() => setSelectedService(service)}
+                      >
                       {/* Image */}
                       <div className="relative h-48 overflow-hidden">
                         <motion.img
@@ -184,6 +185,7 @@ export function Services() {
                         transition={{ duration: 0.3 }}
                       />
                     </motion.div>
+                    </ScrollReveal3D>
                   );
                 })}
               </div>
