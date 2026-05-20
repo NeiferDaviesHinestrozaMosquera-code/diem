@@ -117,7 +117,7 @@ export const getSiteSettings = async (): Promise<SiteSettings | null> => {
     throw error;
   }
 
-  return data ? mapSiteSettings(data as Record<string, unknown>) : null;
+  return data ? mapSiteSettings(data as unknown as Record<string, unknown>) : null;
 };
 
 /** Obtiene solo los campos públicos (Header, Footer, Contact, etc.) */
@@ -133,7 +133,7 @@ export const getPublicSiteSettings = async (): Promise<SiteSettings | null> => {
     throw error;
   }
 
-  return data ? mapSiteSettings(data as Record<string, unknown>) : null;
+  return data ? mapSiteSettings(data as unknown as Record<string, unknown>) : null;
 };
 
 // ─── Mutations ────────────────────────────────────────────────────────────────
