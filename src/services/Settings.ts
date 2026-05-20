@@ -31,10 +31,10 @@ const PUBLIC_SETTINGS_COLUMNS = [
 
 function mapSiteSettings(data: Record<string, unknown>): SiteSettings {
   // contact_info JSONB tiene prioridad; si falta, se construye desde columnas individuales.
-  const contactInfo: SiteSettings['contactInfo'] = data.contact_info ?? {
-    email:   data.contact_email   ?? '',
-    phone:   data.contact_phone   ?? '',
-    address: data.contact_address ?? '',
+  const contactInfo = (data.contact_info as { email: string; phone: string; address: string }) ?? {
+    email:   (data.contact_email as string)   ?? '',
+    phone:   (data.contact_phone as string)   ?? '',
+    address: (data.contact_address as string) ?? '',
   };
 
   const socialLinks: SiteSettings['socialLinks'] = data.social_links ?? {};
@@ -117,7 +117,7 @@ export const getSiteSettings = async (): Promise<SiteSettings | null> => {
     throw error;
   }
 
-  return data ? mapSiteSettings(data) : null;
+  return data ? mapSiteSettings(data as Record<string, unknown>) : null;
 };
 
 /** Obtiene solo los campos públicos (Header, Footer, Contact, etc.) */
@@ -133,7 +133,7 @@ export const getPublicSiteSettings = async (): Promise<SiteSettings | null> => {
     throw error;
   }
 
-  return data ? mapSiteSettings(data) : null;
+  return data ? mapSiteSettings(data as Record<string, unknown>) : null;
 };
 
 // ─── Mutations ────────────────────────────────────────────────────────────────

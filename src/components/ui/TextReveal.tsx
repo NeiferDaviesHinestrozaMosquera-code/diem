@@ -1,5 +1,4 @@
-import React from 'react';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, Variants } from 'framer-motion';
 import { useRef } from 'react';
 
 interface TextRevealProps {
@@ -15,7 +14,7 @@ export function TextReveal({ text, className = '', delay = 0 }: TextRevealProps)
   // Dividir el texto en palabras
   const words = text.split(' ');
 
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
     visible: (i = 1) => ({
       opacity: 1,
@@ -23,7 +22,7 @@ export function TextReveal({ text, className = '', delay = 0 }: TextRevealProps)
     }),
   };
 
-  const child = {
+  const child: Variants = {
     visible: {
       opacity: 1,
       y: 0,

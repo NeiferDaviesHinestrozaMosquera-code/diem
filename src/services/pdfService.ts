@@ -245,7 +245,7 @@ export class PDFService {
         0: { fontStyle: 'bold' },
         1: { halign: 'right' },
       },
-      didParseCell: function (data: Record<string, unknown>) {
+      didParseCell: function (data: any) {
         if ((data.row as Record<string, unknown>).index === costData.length - 1) {
           const cell = data.cell as { styles: Record<string, unknown> };
           cell.styles.fontStyle = 'bold';

@@ -5,16 +5,16 @@ import type { TeamMember } from "@/types";
 
 function mapTeamMember(item: Record<string, unknown>): TeamMember {
   return {
-    id:          item.id,
-    name:        item.name        ?? '',
-    role:        item.role        ?? '',
-    bio:         item.bio         ?? '',
-    image:       item.image       ?? '',
-    linkedinUrl: item.linkedin_url ?? '',
-    githubUrl:   item.github_url  ?? '',
-    twitterUrl:  item.twitter_url ?? '',
-    order:       item.order       ?? 0,
-    isActive:    item.is_active   ?? true,
+    id:          item.id as string,
+    name:        (item.name as string)        ?? '',
+    role:        (item.role as string)        ?? '',
+    bio:         (item.bio as string)         ?? '',
+    image:       (item.image as string)       ?? '',
+    linkedinUrl: (item.linkedin_url as string) ?? '',
+    githubUrl:   (item.github_url as string)  ?? '',
+    twitterUrl:  (item.twitter_url as string) ?? '',
+    order:       (item.order as number)       ?? 0,
+    isActive:    (item.is_active as boolean)  ?? true,
     createdAt:   new Date(item.created_at as string),
     updatedAt:   new Date(item.updated_at as string),
   };
