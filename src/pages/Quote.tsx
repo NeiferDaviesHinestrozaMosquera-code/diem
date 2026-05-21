@@ -25,6 +25,7 @@ import { addQuoteRequest } from '@/services/QuoteRequests';
 import { integratedReportService } from '@/services/integratedReportService';
 import { toast } from 'sonner';
 import type { QuoteRequest } from '@/types';
+import { SEO } from '@/components/Seo';
 
 const quoteSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -258,6 +259,7 @@ export function Quote() {
 
   return (
     <div className="min-h-screen pt-0">
+      <SEO url="/quote" />
       {/* Header */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />

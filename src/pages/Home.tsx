@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getPublicSiteSettings, getTestimonials } from '@/services/index';
 import type { SiteSettings, Testimonial } from '@/types';
+import { SEO } from '@/components/Seo';
 
 
 // ─── HeroSlide (must match SiteSettings encoding) ────────────────────────────
@@ -256,6 +257,7 @@ export function Home() {
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div ref={containerRef} className="min-h-screen">
+      <SEO url="/" />
 
       {/* ═══════════════════════════════════════════════════
           HERO CAROUSEL

@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/contexts/ThemeContext';
 import { getActiveTeamMembers } from '@/services/index';
 import type { TeamMember } from '@/types';
+import { SEO } from '@/components/Seo';
 
 const values = [
   {
@@ -145,6 +146,7 @@ export function About() {
 
   return (
     <div className="min-h-screen pt-0">
+      <SEO url="/about" />
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />

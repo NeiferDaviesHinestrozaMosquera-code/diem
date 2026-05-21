@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSiteSettings } from '@/hooks/use-siteSettings';
+import { SEO } from '@/components/Seo';
 
 
 
@@ -54,6 +55,7 @@ export function Contact() {
 
   return (
     <div className="min-h-screen pt-0">
+      <SEO url="/contact" />
 
       {/* Header */}
       <section className="py-20 relative overflow-hidden">

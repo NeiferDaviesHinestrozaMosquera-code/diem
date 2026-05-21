@@ -13,6 +13,7 @@ import { getServices, subscribeToServices } from '@/services/Services';
 import type { Service } from '@/types';
 import { TextReveal } from '@/components/ui/TextReveal';
 import { ScrollReveal3D } from '@/components/ui/ScrollReveal3D';
+import { SEO } from '@/components/Seo';
 
 // Mapeo de nombres de iconos a componentes de Lucide
 const iconMap: Record<string, any> = {
@@ -65,6 +66,7 @@ export function Services() {
 
   return (
     <div className="min-h-screen pt-0">
+      <SEO url="/services" />
       {/* Header */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />

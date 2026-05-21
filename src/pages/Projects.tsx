@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useTranslation } from 'react-i18next';
 import { getProjects, subscribeToProjects } from '@/services/index';
 import type { Project } from '@/types';
+import { SEO } from '@/components/Seo';
 
 export function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -59,6 +60,7 @@ export function Projects() {
 
   return (
     <div className="min-h-screen pt-0">
+      <SEO url="/projects" />
       {/* Header */}
       <section className="py-20 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent" />
