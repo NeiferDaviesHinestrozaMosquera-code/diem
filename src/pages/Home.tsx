@@ -263,6 +263,10 @@ export function Home() {
           HERO CAROUSEL
       ═══════════════════════════════════════════════════ */}
       <section className="relative h-screen overflow-hidden">
+        {/* Preload first slide image for LCP */}
+        {slides.length > 0 && (
+          <link rel="preload" as="image" href={slides[0].image} fetchPriority="high" />
+        )}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
@@ -661,6 +665,9 @@ export function Home() {
                           <img
                             src={t.avatar}
                             alt={t.clientName}
+                            width={44}
+                            height={44}
+                            loading="lazy"
                             className="w-11 h-11 rounded-full object-cover ring-2 ring-primary/20"
                           />
                         ) : (
@@ -698,6 +705,9 @@ export function Home() {
                           <img
                             src={testimonials[activeTestimonial].avatar}
                             alt={testimonials[activeTestimonial].clientName}
+                            width={44}
+                            height={44}
+                            loading="lazy"
                             className="w-11 h-11 rounded-full object-cover ring-2 ring-primary/20"
                           />
                         ) : (
