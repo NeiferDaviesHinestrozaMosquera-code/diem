@@ -131,7 +131,10 @@ export function Header({ isAdmin = false }: HeaderProps) {
                 whileHover={{ scale: 1.05 }}
                 className="relative group"
               >
-                <button className="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-accent transition-colors">
+                <button 
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-accent transition-colors min-w-[44px] min-h-[44px]"
+                  aria-label="Cambiar tema de color"
+                >
                   <motion.div
                     animate={{ rotate: isDark ? 180 : 0 }}
                     transition={{ duration: 0.3 }}
@@ -165,7 +168,9 @@ export function Header({ isAdmin = false }: HeaderProps) {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-accent transition-colors"
+                className="lg:hidden p-2 rounded-lg hover:bg-accent transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label={mobileMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+                aria-expanded={mobileMenuOpen}
               >
                 <AnimatePresence mode="wait">
                   <motion.div

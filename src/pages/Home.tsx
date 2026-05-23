@@ -152,7 +152,7 @@ function AnimatedStat({ target, suffix, label, index }: { target: number; suffix
       className="text-center"
     >
       <div ref={ref as React.Ref<HTMLDivElement>} className="text-4xl md:text-5xl font-bold mb-2">{display}</div>
-      <div className="text-white/80">{label}</div>
+      <div className="text-white/90">{label}</div>
     </motion.div>
   );
 }
@@ -305,7 +305,7 @@ export function Home() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="inline-block px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white/90 text-sm font-medium mb-4"
+                  className="inline-block px-4 py-2 bg-white/25 backdrop-blur-sm rounded-full text-white text-sm font-medium mb-4"
                 >
                   {slides[currentSlide].subtitle}
                 </motion.span>
@@ -317,7 +317,7 @@ export function Home() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="text-lg text-white/80 mb-8 max-w-lg"
+                  className="text-lg text-white/90 mb-8 max-w-lg"
                 >
                   {slides[currentSlide].description}
                 </motion.p>
@@ -354,16 +354,20 @@ export function Home() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={prevSlide}
-            className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
+            aria-label="Slide anterior"
+            className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
           >
             <ChevronLeft className="w-5 h-5" />
           </motion.button>
-          <div className="flex gap-2">
+          <div className="flex gap-2" role="tablist" aria-label="Slides del carrusel">
             {slides.map((_, index) => (
               <button
                 key={index}
+                role="tab"
+                aria-selected={index === currentSlide}
+                aria-label={`Ir al slide ${index + 1}`}
                 onClick={() => setCurrentSlide(index)}
-                className={`transition-all duration-300 rounded-full ${
+                className={`transition-all duration-300 rounded-full min-w-[12px] min-h-[12px] ${
                   index === currentSlide ? 'bg-white w-6 h-3' : 'bg-white/40 w-3 h-3'
                 }`}
               />
@@ -373,7 +377,8 @@ export function Home() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={nextSlide}
-            className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors"
+            aria-label="Slide siguiente"
+            className="p-3 rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
           >
             <ChevronRight className="w-5 h-5" />
           </motion.button>
@@ -724,13 +729,16 @@ export function Home() {
                   </AnimatePresence>
 
                   {/* Mobile dots */}
-                  <div className="flex justify-center gap-2 mt-6">
+                  <div className="flex justify-center gap-3 mt-6" role="tablist" aria-label="Testimonios">
                     {testimonials.slice(0, 6).map((_, i) => (
                       <button
                         key={i}
+                        role="tab"
+                        aria-selected={i === activeTestimonial}
+                        aria-label={`Testimonio ${i + 1}`}
                         onClick={() => setActiveTestimonial(i)}
-                        className={`transition-all duration-300 rounded-full ${
-                          i === activeTestimonial ? 'bg-primary w-6 h-2.5' : 'bg-muted w-2.5 h-2.5'
+                        className={`transition-all duration-300 rounded-full min-w-[12px] min-h-[12px] p-1 ${
+                          i === activeTestimonial ? 'bg-primary w-6 h-3' : 'bg-muted w-3 h-3'
                         }`}
                       />
                     ))}
