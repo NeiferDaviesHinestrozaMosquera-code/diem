@@ -55,6 +55,9 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
             <motion.img
               src={member.image}
               alt={member.name}
+              width={160}
+              height={160}
+              loading="lazy"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
           ) : (

@@ -7,11 +7,11 @@ import { Toaster } from '@/components/ui/sonner';
 import { Header } from '@/components/layout/Header';
 import { AdminHeader } from '@/components/layout/AdminHeader';
 import { Footer } from '@/components/layout/Footer';
-import { CustomCursor } from '@/components/ui/CustomCursor';
 import { PageTransition } from '@/components/layout/PageTransition';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Spinner } from '@/components/ui/spinner';
 
+const CustomCursor = lazy(() => import('@/components/ui/CustomCursor').then(m => ({ default: m.CustomCursor })));
 const Home = lazy(() => import('@/pages/Home').then(m => ({ default: m.Home })));
 const Services = lazy(() => import('@/pages/Services').then(m => ({ default: m.Services })));
 const Projects = lazy(() => import('@/pages/Projects').then(m => ({ default: m.Projects })));
@@ -45,7 +45,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <CustomCursor />
+      <Suspense fallback={null}>
+        <CustomCursor />
+      </Suspense>
       {!isAdmin && <Header />}
       {isAdmin && !isLoginPage && <AdminHeader />}
 

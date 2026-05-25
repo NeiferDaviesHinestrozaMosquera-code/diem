@@ -145,18 +145,21 @@ export function Header({ isAdmin = false }: HeaderProps) {
                 <div className="absolute top-full right-0 mt-2 py-1 bg-popover rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 min-w-[120px]">
                   <button
                     onClick={() => setTheme('light')}
+                    aria-label="Cambiar a tema claro"
                     className={`w-full px-4 py-2 text-sm text-left hover:bg-accent ${theme === 'light' ? 'bg-accent' : ''}`}
                   >
                     ☀️ Light
                   </button>
                   <button
                     onClick={() => setTheme('dark')}
+                    aria-label="Cambiar a tema oscuro"
                     className={`w-full px-4 py-2 text-sm text-left hover:bg-accent ${theme === 'dark' ? 'bg-accent' : ''}`}
                   >
                     🌙 Dark
                   </button>
                   <button
                     onClick={() => setTheme('system')}
+                    aria-label="Usar tema del sistema"
                     className={`w-full px-4 py-2 text-sm text-left hover:bg-accent ${theme === 'system' ? 'bg-accent' : ''}`}
                   >
                     💻 System

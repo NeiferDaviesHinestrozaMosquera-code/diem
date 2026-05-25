@@ -276,10 +276,16 @@ export function Home() {
             transition={{ duration: 0.8, ease: 'easeInOut' }}
             className="absolute inset-0"
           >
-            <motion.div
-              className="absolute inset-0 bg-cover bg-center"
+            <motion.img
+              src={slides[currentSlide].image}
+              alt={slides[currentSlide].title}
+              width={1920}
+              height={1080}
+              fetchPriority={currentSlide === 0 ? "high" : "auto"}
+              loading={currentSlide === 0 ? "eager" : "lazy"}
+              decoding={currentSlide === 0 ? "sync" : "async"}
+              className="absolute inset-0 w-full h-full object-cover"
               style={{
-                backgroundImage: `url(${slides[currentSlide].image})`,
                 transform: `translate(${mousePosition.x}px, ${mousePosition.y}px) scale(1.1)`,
                 transition: 'transform 0.3s ease-out',
                 y: yBg

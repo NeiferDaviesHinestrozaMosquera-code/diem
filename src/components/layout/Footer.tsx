@@ -122,6 +122,8 @@ export function Footer() {
                 <motion.img
                   src={settings.logo}
                   alt={siteName}
+                  width={32}
+                  height={32}
                   className="h-8 w-auto object-contain"
                   whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
                 />

@@ -140,6 +140,8 @@ export function Projects() {
                       <img
                         src={project.images[0]}
                         alt={project.title}
+                        width={400}
+                        height={192}
                         loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
@@ -226,6 +228,8 @@ export function Projects() {
                         key={currentImageIndex}
                         src={selectedProject.images[currentImageIndex]}
                         alt={`${selectedProject.title} - ${currentImageIndex + 1}`}
+                        width={960}
+                        height={320}
                         className="w-full h-full object-cover"
                         initial={{ opacity: 0, x: 100 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -244,13 +248,15 @@ export function Projects() {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 hover:bg-background transition-colors"
+                        aria-label="Imagen anterior"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/80 hover:bg-background transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                       >
                         <ChevronLeft className="w-5 h-5" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-background/80 hover:bg-background transition-colors"
+                        aria-label="Siguiente imagen"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-background/80 hover:bg-background transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                       >
                         <ChevronRight className="w-5 h-5" />
                       </button>

@@ -147,6 +147,8 @@ export function Services() {
                         <motion.img
                           src={service.image}
                           alt={service.title}
+                          width={400}
+                          height={192}
                           loading="lazy"
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
@@ -217,6 +219,8 @@ export function Services() {
                   <motion.img
                     src={selectedService.image}
                     alt={selectedService.title}
+                    width={768}
+                    height={208}
                     className="w-full h-52 object-cover rounded-xl mb-4"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
