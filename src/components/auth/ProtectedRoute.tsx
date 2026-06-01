@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   // Mostrar loading mientras verifica la sesión
@@ -15,7 +15,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-[#5D4E8C]" />
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
           <p className="text-muted-foreground">Verificando sesión...</p>
         </div>
       </div>
@@ -27,6 +27,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  // Si está autenticado, mostrar el contenido protegido
+  // Si está autenticado pero NO es administrador
+  const isAdmin = user?.app_metadata?.role === 'admin';
+  if (!isAdmin) {
+    // Es posible que no deba usar hooks dentro del if, así que usar Navigate de forma limpia.
+    // Mostraríamos un mensaje pero Navigate es renderizado directo
+    return <Navigate to="/" replace />;
+  }
+
+  // Si está autenticado y es admin, mostrar el contenido protegido
   return <>{children}</>;
 }
