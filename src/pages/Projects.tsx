@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ExternalLink, ChevronLeft, ChevronRight,
-  Calendar, User, Folder, Code2, Loader2, AlertCircle
+  Calendar, User, Folder, Code2, AlertCircle
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { LogisticsProjectSkeleton } from '@/components/ui/LogisticsProjectSkeleton';
 import { useTranslation } from 'react-i18next';
 import { getProjects, subscribeToProjects } from '@/services/index';
 import type { Project } from '@/types';
@@ -96,11 +97,12 @@ export function Projects() {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* Loading */}
+          {/* Loading — Logistics-themed skeleton grid */}
           {loading && (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-muted-foreground">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-              <p>{t('loading', 'Cargando proyectos...')}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <LogisticsProjectSkeleton key={i} index={i} />
+              ))}
             </div>
           )}
 
