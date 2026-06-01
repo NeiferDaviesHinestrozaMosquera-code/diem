@@ -26,7 +26,7 @@ const FALLBACK_SLIDES = [
     title: 'Transform Your Digital Presence',
     subtitle: 'Innovative solutions for modern businesses',
     description: 'We create cutting-edge digital experiences that drive growth and engagement.',
-    image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1920&q=80',
+    image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&q=75',
     gradient: 'from-blue-600/90 to-purple-600/90',
   },
   {
@@ -34,7 +34,7 @@ const FALLBACK_SLIDES = [
     title: 'AI-Powered Solutions',
     subtitle: 'Intelligent automation for your business',
     description: 'Leverage the power of artificial intelligence to streamline operations.',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1920&q=80',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=75',
     gradient: 'from-purple-600/90 to-pink-600/90',
   },
   {
@@ -42,7 +42,7 @@ const FALLBACK_SLIDES = [
     title: 'E-Commerce Excellence',
     subtitle: 'Build your online empire',
     description: 'Complete e-commerce solutions that convert visitors into customers.',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1920&q=80',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=75',
     gradient: 'from-emerald-600/90 to-teal-600/90',
   },
 ];
@@ -68,6 +68,8 @@ function decodeHeroImages(heroImages: string[]): HeroSlideData[] {
 
 export function Home() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  // Inicializar con fallback para que el hero tenga imagen desde frame 0 (fix LCP)
+  const [slides, setSlides] = useState<HeroSlideData[]>(FALLBACK_SLIDES);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [testimonialsLoading, setTestimonialsLoading] = useState(true);
 
@@ -76,7 +78,23 @@ export function Home() {
 
   useEffect(() => {
     getPublicSiteSettings()
-      .then(setSiteSettings)
+      .then((settings) => {
+        setSiteSettings(settings);
+        // Actualizar slides con datos reales cuando lleguen
+        const raw = settings?.heroImages ?? [];
+        if (raw.length > 0) {
+          const decoded = decodeHeroImages(raw);
+          const resolved = decoded.map((slide, idx) => ({
+            id:          slide.id,
+            title:       slide.title       || settings?.heroTitle    || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].title,
+            subtitle:    slide.subtitle    || settings?.heroSubtitle || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].subtitle,
+            description: slide.description || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].description,
+            image:       slide.image       || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].image,
+            gradient:    slide.gradient    || GRADIENTS[idx % GRADIENTS.length],
+          }));
+          setSlides(resolved);
+        }
+      })
       .catch(console.error);
 
     getTestimonials()
@@ -86,22 +104,6 @@ export function Home() {
       })
       .catch(() => setTestimonialsLoading(false));
   }, []);
-
-  const slides = (() => {
-    const raw = siteSettings?.heroImages ?? [];
-    if (raw.length === 0) return FALLBACK_SLIDES;
-
-    const decoded = decodeHeroImages(raw);
-
-    return decoded.map((slide, idx) => ({
-      id:          slide.id,
-      title:       slide.title       || siteSettings?.heroTitle    || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].title,
-      subtitle:    slide.subtitle    || siteSettings?.heroSubtitle || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].subtitle,
-      description: slide.description || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].description,
-      image:       slide.image       || FALLBACK_SLIDES[idx % FALLBACK_SLIDES.length].image,
-      gradient:    slide.gradient    || GRADIENTS[idx % GRADIENTS.length],
-    }));
-  })();
 
   return (
     <div className="min-h-screen">

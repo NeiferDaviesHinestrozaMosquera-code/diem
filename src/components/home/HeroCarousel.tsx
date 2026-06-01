@@ -57,10 +57,6 @@ export function HeroCarousel({ slides, yBg }: HeroCarouselProps) {
 
   return (
     <section ref={containerRef} className="relative h-screen overflow-hidden">
-      {/* Preload first slide image for LCP */}
-      {slides.length > 0 && (
-        <link rel="preload" as="image" href={slides[0].image} fetchPriority="high" />
-      )}
       <AnimatePresence mode="wait">
         {slides.length > 0 && (
           <motion.div
@@ -73,9 +69,10 @@ export function HeroCarousel({ slides, yBg }: HeroCarouselProps) {
           >
             <motion.img
               src={slides[currentSlide].image}
-              alt={slides[currentSlide].title}
-              width={1920}
-              height={1080}
+              alt={slides[currentSlide].title || 'Hero image'}
+              width={1200}
+              height={675}
+              sizes="100vw"
               fetchPriority={currentSlide === 0 ? "high" : "auto"}
               loading={currentSlide === 0 ? "eager" : "lazy"}
               decoding={currentSlide === 0 ? "sync" : "async"}

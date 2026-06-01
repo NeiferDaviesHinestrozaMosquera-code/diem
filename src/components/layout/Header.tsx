@@ -60,9 +60,9 @@ export function Header({ isAdmin = false }: HeaderProps) {
   return (
     <>
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled || isAdmin
             ? 'bg-background/95 backdrop-blur-md shadow-lg border-b border-border'
