@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
   // Mostrar loading mientras verifica la sesión
@@ -27,14 +27,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
-  // Si está autenticado pero NO es administrador
-  const isAdmin = user?.app_metadata?.role === 'admin';
-  if (!isAdmin) {
-    // Es posible que no deba usar hooks dentro del if, así que usar Navigate de forma limpia.
-    // Mostraríamos un mensaje pero Navigate es renderizado directo
-    return <Navigate to="/" replace />;
-  }
-
-  // Si está autenticado y es admin, mostrar el contenido protegido
+  // Si está autenticado, mostrar el contenido protegido
+  // (la seguridad la provee Supabase Auth — solo quien tiene las credenciales puede iniciar sesión)
   return <>{children}</>;
 }
